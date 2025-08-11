@@ -2,6 +2,7 @@ import React from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { TopBar } from "@/components/TopBar";
 import { Sidebar } from "@/components/Sidebar";
+import { CalendarView } from "@/components/CalendarView"; // New import
 
 const DashboardPage = () => {
   return (
@@ -11,11 +12,11 @@ const DashboardPage = () => {
         <TopBar />
         <main className="flex-1 p-6">
           <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-50">Dashboard Overview</h1>
-          <p className="text-gray-700 dark:text-gray-300">
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
             Welcome to your meeting room booking system.
             Here you will see the calendar view and manage your bookings.
           </p>
-          {/* Calendar view will go here */}
+          <CalendarView /> {/* Integrated CalendarView */}
         </main>
         <MadeWithDyad />
       </div>

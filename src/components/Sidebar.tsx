@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Users, Building, LogOut } from "lucide-react";
+import { Calendar, Users, Building, LogOut, User } from "lucide-react"; // Added User icon
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -56,6 +56,7 @@ export const Sidebar = () => {
 
   const navItems = [
     { name: "Calendar", icon: Calendar, path: "/dashboard" },
+    { name: "Profile", icon: User, path: "/profile" }, // New Profile link
   ];
 
   if (isAdmin) {
@@ -68,7 +69,7 @@ export const Sidebar = () => {
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">Dyad Rooms</h2>
+        <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">OnnoRokom Meeting Booking System</h2> {/* Updated Logo Text */}
       </div>
       <nav className="flex-1">
         <ul className="space-y-2">
