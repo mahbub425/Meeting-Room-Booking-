@@ -32,6 +32,7 @@ export interface MeetingRoom {
   is_enabled: boolean;
   created_at: string;
   updated_at: string;
+  category_id: string | null; // New: Added category_id
 }
 
 export interface Profile {
@@ -49,4 +50,6 @@ export interface Profile {
   time_format: '12-hour' | '24-hour';
   week_start_day: 'Sunday' | 'Monday';
   notification_preference: boolean;
+  category_access: string[] | null; // New: Added category_access
+  is_enabled: boolean; // New: Added is_enabled
 }

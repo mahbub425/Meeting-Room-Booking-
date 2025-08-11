@@ -11,6 +11,7 @@ import { MeetingRoomForm } from "@/components/admin/MeetingRoomForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 export interface MeetingRoom {
   id: string;
@@ -22,6 +23,7 @@ export interface MeetingRoom {
   is_enabled: boolean;
   created_at: string;
   updated_at: string;
+  category_id: string | null; // Added category_id
 }
 
 const MeetingRoomManagementPage = () => {
@@ -33,6 +35,7 @@ const MeetingRoomManagementPage = () => {
   const [editingRoom, setEditingRoom] = useState<MeetingRoom | null>(null);
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [categories, setCategories] = useState<MeetingRoomCategory[]>([]); // State to store categories
 
   useEffect(() => {
     const fetchUserRoleAndRooms = async () => {
@@ -48,6 +51,7 @@ const MeetingRoomManagementPage = () => {
           return;
         }
         fetchMeetingRooms();
+        fetchCategories(); // Fetch categories when component mounts
       } else if (!loading && !user) {
         navigate("/login"); // Redirect unauthenticated
       }
@@ -74,6 +78,24 @@ const MeetingRoomManagementPage = () => {
       setMeetingRooms(data || []);
     }
     setIsFetching(false);
+  };
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('meeting_room_categories')
+      .select('id, name')
+      .order('name', { ascending: true });
+
+    if (error) {
+      toast({
+        title: "Error fetching categories",
+        description: error.message,
+        variant: "destructive",
+      });
+      setCategories([]);
+    } else {
+      setCategories(data || []);
+    }
   };
 
   const handleAddRoomClick = () => {
@@ -170,6 +192,7 @@ const MeetingRoomManagementPage = () => {
           </div>
           <MeetingRoomTable
             rooms={meetingRooms}
+            categories={categories} // Pass categories to the table
             onEdit={handleEditRoom}
             onDelete={handleDeleteRoom}
             onToggleEnable={handleToggleEnable}

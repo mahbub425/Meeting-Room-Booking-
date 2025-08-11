@@ -3,7 +3,7 @@ import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay, setHours, setMinutes, isPast, isFuture, isToday } from "date-fns";
-import { MeetingRoom, Booking } from "@/types";
+import { MeetingRoom, Booking } from "@/types"; // Import MeetingRoom from types
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";

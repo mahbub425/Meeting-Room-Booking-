@@ -7,21 +7,25 @@ import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import * as QRCodeModule from "qrcode.react"; // Changed to namespace import
 import { useToast } from "@/hooks/use-toast";
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 // Access the QRCode component from the default export of the module
 const QRCode = QRCodeModule.default;
 
 interface MeetingRoomTableProps {
   rooms: MeetingRoom[];
+  categories: MeetingRoomCategory[]; // New prop for categories
   onEdit: (room: MeetingRoom) => void;
   onDelete: (id: string) => void;
   onToggleEnable: (room: MeetingRoom) => void;
 }
 
-export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, onEdit, onDelete, onToggleEnable }) => {
+export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, categories, onEdit, onDelete, onToggleEnable }) => {
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<MeetingRoom | null>(null);
   const { toast } = useToast();
+
+  const categoryMap = new Map(categories.map(cat => [cat.id, cat.name]));
 
   const handleQrCodeClick = (room: MeetingRoom) => {
     setSelectedRoom(room);
@@ -98,6 +102,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, onEdi
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
+            <TableHead>Category</TableHead> {/* New column */}
             <TableHead>Capacity</TableHead>
             <TableHead>Facilities</TableHead>
             <TableHead>Time Limit</TableHead>
@@ -108,7 +113,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, onEdi
         <TableBody>
           {rooms.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+              <TableCell colSpan={7} className="text-center py-4 text-gray-500"> {/* Updated colspan */}
                 No meeting rooms found.
               </TableCell>
             </TableRow>
@@ -116,6 +121,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, onEdi
             rooms.map((room) => (
               <TableRow key={room.id}>
                 <TableCell className="font-medium">{room.name}</TableCell>
+                <TableCell>{room.category_id ? (categoryMap.get(room.category_id) || "Unknown") : "N/A"}</TableCell> {/* Display category name */}
                 <TableCell>{room.capacity || "N/A"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{room.facilities || "N/A"}</TableCell>
                 <TableCell>{room.available_time_limit || "N/A"}</TableCell>

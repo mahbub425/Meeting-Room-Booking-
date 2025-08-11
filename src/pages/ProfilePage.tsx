@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must be at most 100 characters.").regex(/^[a-zA-Z\s]+$/, "Name must contain only alphabetic characters and spaces."),
@@ -26,6 +27,8 @@ const profileSchema = z.object({
   time_format: z.enum(["12-hour", "24-hour"]).optional(),
   week_start_day: z.enum(["Sunday", "Monday"]).optional(),
   notification_preference: z.boolean().default(true),
+  category_access: z.array(z.string()).optional(), // Added for display
+  is_enabled: z.boolean().default(true), // Added for display
 });
 
 const passwordSchema = z.object({
@@ -53,6 +56,7 @@ const ProfilePage = () => {
   const { user, loading } = useSession();
   const { toast } = useToast();
   const [profileLoading, setProfileLoading] = useState(true);
+  const [categories, setCategories] = useState<MeetingRoomCategory[]>([]); // State to store categories
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -66,6 +70,8 @@ const ProfilePage = () => {
       time_format: "24-hour", // Default value
       week_start_day: "Sunday", // Default value
       notification_preference: true, // Default value
+      category_access: [],
+      is_enabled: true,
     },
   });
 
@@ -79,7 +85,7 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndCategories = async () => {
       if (user) {
         const { data, error } = await supabase
           .from('profiles')
@@ -104,14 +110,32 @@ const ProfilePage = () => {
             time_format: data.time_format || "24-hour",
             week_start_day: data.week_start_day || "Sunday",
             notification_preference: data.notification_preference ?? true,
+            category_access: data.category_access || [],
+            is_enabled: data.is_enabled ?? true,
           });
+        }
+
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('meeting_room_categories')
+          .select('id, name')
+          .order('name', { ascending: true });
+
+        if (categoriesError) {
+          toast({
+            title: "Error fetching categories",
+            description: categoriesError.message,
+            variant: "destructive",
+          });
+          setCategories([]);
+        } else {
+          setCategories(categoriesData || []);
         }
       }
       setProfileLoading(false);
     };
 
     if (!loading) {
-      fetchProfile();
+      fetchProfileAndCategories();
     }
   }, [user, loading, profileForm, toast]);
 
@@ -129,6 +153,7 @@ const ProfilePage = () => {
           time_format: values.time_format,
           week_start_day: values.week_start_day,
           notification_preference: values.notification_preference,
+          // category_access and is_enabled are not editable by user on this page
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
@@ -197,6 +222,11 @@ const ProfilePage = () => {
     return null; // Redirect handled by SessionContextProvider
   }
 
+  const categoryNames = profileForm.watch("category_access")
+    ?.map(id => categories.find(cat => cat.id === id)?.name)
+    .filter(Boolean)
+    .join(", ") || "None";
+
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       <Sidebar />
@@ -250,7 +280,7 @@ const ProfilePage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="language">Language</Label>
-                    <Select onValueChange={(value) => profileForm.setValue("language", value)} value={profileForm.watch("language")}>
+                    <Select onValueChange={(value) => profileForm.setValue("language", value as "12-hour" | "24-hour")} value={profileForm.watch("language")}>
                       <SelectTrigger id="language">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
@@ -295,6 +325,19 @@ const ProfilePage = () => {
                     onCheckedChange={(checked) => profileForm.setValue("notification_preference", checked)}
                   />
                   <Label htmlFor="notification_preference">Receive Email Notifications</Label>
+                </div>
+                {/* Display Category Access and Account Status */}
+                <div className="space-y-2">
+                  <Label>Approved Meeting Room Categories</Label>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {categoryNames}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Status</Label>
+                  <p className={`text-sm font-semibold ${profileForm.watch("is_enabled") ? "text-green-600" : "text-red-600"}`}>
+                    {profileForm.watch("is_enabled") ? "Active" : "Disabled"}
+                  </p>
                 </div>
                 <Button type="submit" disabled={profileForm.formState.isSubmitting}>
                   {profileForm.formState.isSubmitting ? "Saving..." : "Save Changes"}

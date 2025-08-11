@@ -16,7 +16,7 @@ import { format, parseISO, setHours, setMinutes, isBefore, isAfter, addDays, sta
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@/components/SessionContextProvider";
-import { MeetingRoom, Booking } from "@/types";
+import { MeetingRoom, Booking } from "@/types"; // Import MeetingRoom from types
 
 const timeOptions = Array.from({ length: 24 * 4 }, (_, i) => {
   const hour = Math.floor(i / 4);
