@@ -47,26 +47,21 @@ export const signUp = async (data: {
 };
 
 export const signInWithPassword = async (pin: string, password: string) => {
-  // First, get the email associated with the PIN
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("pin", pin)
-    .single();
+  // First, get the email associated with the PIN using the new RPC function
+  const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_pin', { p_pin: pin });
 
-  if (profileError) {
-    if (profileError.code === 'PGRST116') { // No rows found
-      throw new AuthError("Invalid PIN or Password.", 400);
-    }
-    throw profileError;
+  if (rpcError) {
+    throw new AuthError("Invalid PIN or Password.", 400); // Generic error for security
   }
 
-  if (!profile || !profile.email) {
+  const email = emailData as string | null;
+
+  if (!email) {
     throw new AuthError("Invalid PIN or Password.", 400);
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: profile.email,
+    email: email,
     password,
   });
 
@@ -88,20 +83,17 @@ export const resetPasswordForEmail = async (emailOrPin: string) => {
 
   // If it looks like a PIN, try to get the email from the profiles table
   if (/^\d+$/.test(emailOrPin)) { // Updated PIN regex
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("pin", emailOrPin)
-      .single();
+    // Use the new RPC function to get email by PIN
+    const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_pin', { p_pin: emailOrPin });
 
-    if (profileError) {
-      if (profileError.code === 'PGRST116') { // No rows found
-        throw new Error("Email or PIN not found.");
-      }
-      throw profileError;
+    if (rpcError) {
+      throw new Error("Email or PIN not found.");
     }
-    if (profile && profile.email) {
-      emailToReset = profile.email;
+
+    const fetchedEmail = emailData as string | null;
+
+    if (fetchedEmail) {
+      emailToReset = fetchedEmail;
     } else {
       throw new Error("Email or PIN not found.");
     }
