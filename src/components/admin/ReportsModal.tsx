@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from 'xlsx';
-import { format, subMonths, subYears, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import { format, subMonths, subYears, startOfMonth, endOfMonth, startOfYear, endOfYear, differenceInMinutes, parseISO } from "date-fns";
 import { Booking } from "@/types";
 
 interface ReportsModalProps {
@@ -53,8 +53,8 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) =
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('*')
-        .gte('created_at', format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"))
-        .lte('created_at', format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"))
+        .gte('start_time', format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"))
+        .lte('end_time', format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"))
         .order('created_at', { ascending: true });
 
       if (bookingsError) throw bookingsError;
@@ -88,19 +88,61 @@ export const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose }) =
         return;
       }
 
-      // Limit to 10,000 rows for large reports
-      const limitedReportData = reportData.slice(0, 10000);
+      // Calculate Room Usage and Popular Times
+      const roomUsage: { [key: string]: number } = {}; // room_id -> total minutes booked
+      const popularTimes: { [key: string]: number } = {}; // HH:mm -> count of bookings starting at this time
+
+      bookings.forEach(booking => {
+        const start = parseISO(booking.start_time);
+        const end = parseISO(booking.end_time);
+        const duration = differenceInMinutes(end, start);
+
+        roomUsage[booking.room_id] = (roomUsage[booking.room_id] || 0) + duration;
+
+        const startTimeHourMinute = format(start, "HH:mm");
+        popularTimes[startTimeHourMinute] = (popularTimes[startTimeHourMinute] || 0) + 1;
+      });
+
+      const roomUsageSummary = Object.entries(roomUsage)
+        .map(([roomId, minutes]) => ({
+          "Room Name": roomMap.get(roomId) || "Unknown Room",
+          "Total Usage (Minutes)": minutes,
+          "Total Usage (Hours)": (minutes / 60).toFixed(2),
+        }))
+        .sort((a, b) => b["Total Usage (Minutes)"] - a["Total Usage (Minutes)"]);
+
+      const popularTimesSummary = Object.entries(popularTimes)
+        .map(([time, count]) => ({
+          "Time Slot": time,
+          "Number of Bookings": count,
+        }))
+        .sort((a, b) => b["Number of Bookings"] - a["Number of Bookings"]);
+
+      // Create multiple sheets in the Excel workbook
+      const workbook = XLSX.utils.book_new();
+
+      // Sheet 1: Detailed Bookings
+      const worksheetBookings = XLSX.utils.json_to_sheet(reportData.slice(0, 10000));
+      XLSX.utils.book_append_sheet(workbook, worksheetBookings, "Detailed Bookings");
       if (reportData.length > 10000) {
         toast({
           title: "Report Truncated",
-          description: "Report limited to 10,000 rows for performance. Consider a shorter period.",
+          description: "Detailed bookings report limited to 10,000 rows for performance. Consider a shorter period.",
           variant: "warning",
         });
       }
 
-      const worksheet = XLSX.utils.json_to_sheet(limitedReportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings Report");
+      // Sheet 2: Room Usage Summary
+      if (roomUsageSummary.length > 0) {
+        const worksheetRoomUsage = XLSX.utils.json_to_sheet(roomUsageSummary);
+        XLSX.utils.book_append_sheet(workbook, worksheetRoomUsage, "Room Usage Summary");
+      }
+
+      // Sheet 3: Popular Times Summary
+      if (popularTimesSummary.length > 0) {
+        const worksheetPopularTimes = XLSX.utils.json_to_sheet(popularTimesSummary);
+        XLSX.utils.book_append_sheet(workbook, worksheetPopularTimes, "Popular Times Summary");
+      }
 
       const fileName = `Meeting_Bookings_Report_${selectedPeriod}_${format(now, "yyyyMMdd_HHmmss")}.xlsx`;
       XLSX.writeFile(workbook, fileName);
