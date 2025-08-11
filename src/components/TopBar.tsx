@@ -9,10 +9,12 @@ import { Sidebar } from "@/components/Sidebar";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import { useSession } from "@/components/SessionContextProvider"; // Import useSession
 
 export const TopBar = () => {
   const { toast } = useToast();
   const { selectedDate, setSelectedDate, toggleSidebar, isSidebarOpen, setViewMode } = useDashboardLayout();
+  const { user } = useSession(); // Get user from session
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -61,6 +63,8 @@ export const TopBar = () => {
       description: "Help content coming soon!", // Placeholder
     });
   };
+
+  const isAdmin = user?.user_metadata?.role === 'admin'; // Check if user is admin
 
   return (
     <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -119,8 +123,13 @@ export const TopBar = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to="/profile">Edit Profile</Link>
+              <Link to="/profile">Edit Personal Profile</Link>
             </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin/organization-profile">Edit Organization Profile</Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
