@@ -154,13 +154,14 @@ export const Sidebar = () => {
         {/* Layout Filter */}
         <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
           <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout</h4>
-          <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily")} value={viewMode}>
+          <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily" | "monthly")} value={viewMode}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select layout" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">Weekly</SelectItem>
               <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
             </SelectContent>
           </Select>
         </div>
