@@ -14,10 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // Define the schema for the registration form
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must be at most 100 characters.").regex(/^[a-zA-Z\s]+$/, "Name must contain only alphabetic characters and spaces."),
-  pin: z.string().regex(/^\d{1,9}$/, "PIN must be 1-9 digits long and numeric."), // Changed PIN regex
-  phone: z.string().regex(/^\+880\d{10}$/, "Phone number must be in +8801712345678 format."),
+  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."), // Updated PIN regex
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits long and numeric (e.g., 1712345678)."), // Updated phone regex
   email: z.string().email("Invalid email format.").regex(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Invalid email format."),
-  password: z.string().min(6, "Password must be at least 6 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."), // Changed min length
+  password: z.string().min(6, "Password must be at least 6 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."),
   confirmPassword: z.string(),
   department: z.string().max(50, "Department must be at most 50 characters.").optional().or(z.literal("")),
   designation: z.string().max(50, "Designation must be at most 50 characters.").optional().or(z.literal("")),
@@ -79,7 +79,7 @@ const RegisterPage = () => {
         password: values.password,
         name: values.name,
         pin: values.pin,
-        phone: values.phone,
+        phone: `+880${values.phone}`, // Prepend +880 here for submission
         department: values.department || undefined,
         designation: values.designation || undefined,
       });
@@ -115,8 +115,8 @@ const RegisterPage = () => {
                 {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pin">PIN</Label> {/* Changed text */}
-                <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} /> {/* Changed placeholder */}
+                <Label htmlFor="pin">PIN</Label>
+                <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} />
                 {form.formState.errors.pin && <p className="text-red-500 text-sm">{form.formState.errors.pin.message}</p>}
               </div>
               <div className="space-y-2">
@@ -128,16 +128,9 @@ const RegisterPage = () => {
                   <Input
                     id="phone"
                     type="text"
-                    placeholder="1712345678" // Placeholder for remaining digits
-                    {...form.register("phone", {
-                      setValueAs: (value) => `+880${value}`, // Prepend +880 for validation/submission
-                    })}
+                    placeholder="1712345678"
+                    {...form.register("phone")} // No setValueAs, no custom onChange
                     className="rounded-l-none"
-                    defaultValue={form.getValues("phone")?.replace("+880", "") || ""} // Display without +880
-                    onChange={(e) => {
-                      const rawValue = e.target.value;
-                      form.setValue("phone", `+880${rawValue}`);
-                    }}
                   />
                 </div>
                 {form.formState.errors.phone && <p className="text-red-500 text-sm">{form.formState.errors.phone.message}</p>}

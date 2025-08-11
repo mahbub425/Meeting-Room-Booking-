@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const loginFormSchema = z.object({
-  pin: z.string().regex(/^\d{1,9}$/, "PIN must be 1-9 digits long and numeric."), // Changed PIN regex
+  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."), // Updated PIN regex
   password: z.string().min(1, "Password is required."),
   rememberMe: z.boolean().default(false),
 });
@@ -50,13 +50,13 @@ const LoginPage = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Login</CardTitle>
           <CardDescription className="text-center">
-            Enter your PIN and password to access the system. {/* Changed text */}
+            Enter your PIN and password to access the system.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="pin">PIN</Label> {/* Changed text */}
+              <Label htmlFor="pin">PIN</Label>
               <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} />
               {form.formState.errors.pin && <p className="text-red-500 text-sm">{form.formState.errors.pin.message}</p>}
             </div>
