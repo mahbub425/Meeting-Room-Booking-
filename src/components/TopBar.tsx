@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Share2 } from "lucide-react";
+import { Menu, Share2, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { signOut } from "@/integrations/supabase/auth";
 
 export const TopBar = () => {
   const { toast } = useToast();
@@ -15,6 +16,22 @@ export const TopBar = () => {
       title: "Link Copied!",
       description: "The current page link has been copied to your clipboard.",
     });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged Out",
+        description: "You have successfully logged out.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Logout Failed",
+        description: error.message || "An error occurred during logout.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -34,6 +51,9 @@ export const TopBar = () => {
         </span>
         <Button variant="ghost" size="icon" onClick={handleShare}>
           <Share2 className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={handleLogout}>
+          <LogOut className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Button>
       </div>
     </header>

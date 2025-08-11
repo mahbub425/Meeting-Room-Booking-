@@ -9,24 +9,25 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import RoomDetailsPage from "./pages/RoomDetailsPage";
 import ForcePasswordResetPage from "./pages/ForcePasswordResetPage";
-import RegisterPage from "./pages/RegisterPage"; // New import
-import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // New import
-import { SessionContextProvider } from "./components/SessionContextProvider"; // New import
+import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage"; // New import
+import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* Toaster and Sonner are now inside SessionContextProvider */}
       <BrowserRouter>
         <SessionContextProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} /> {/* New route */}
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} /> {/* New route for Admin Dashboard */}
             <Route path="/room/:id" element={<RoomDetailsPage />} />
             <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
