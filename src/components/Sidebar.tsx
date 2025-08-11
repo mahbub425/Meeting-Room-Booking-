@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users } from "lucide-react"; // Added Users icon
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -8,9 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
-import { Calendar } from "@/components/ui/calendar"; // Import shadcn Calendar
-import { Button } from "@/components/ui/button"; // Import shadcn Button
-import { format, addMonths, subMonths } from "date-fns"; // Import date-fns utilities
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { format, addMonths, subMonths } from "date-fns";
 
 export const Sidebar = () => {
   const { user, loading } = useSession();
@@ -76,6 +76,7 @@ export const Sidebar = () => {
     navItems.push(
       { name: "Admin Dashboard", icon: Building, path: "/admin" },
       { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
+      { name: "User Management", icon: Users, path: "/admin/users" }, // New link
     );
   }
 

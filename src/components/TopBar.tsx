@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2 } from "lucide-react"; // Added BarChart2
+import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2, Users } from "lucide-react"; // Added Users icon
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "@/integrations/supabase/auth";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
@@ -10,13 +10,13 @@ import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
 import { useSession } from "@/components/SessionContextProvider";
-import { ReportsModal } from "@/components/admin/ReportsModal"; // Import ReportsModal
+import { ReportsModal } from "@/components/admin/ReportsModal";
 
 export const TopBar = () => {
   const { toast } = useToast();
   const { selectedDate, setSelectedDate, toggleSidebar, isSidebarOpen, setViewMode } = useDashboardLayout();
   const { user } = useSession();
-  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false); // State for reports modal
+  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -128,9 +128,14 @@ export const TopBar = () => {
               <Link to="/profile">Edit Personal Profile</Link>
             </DropdownMenuItem>
             {isAdmin && (
-              <DropdownMenuItem asChild>
-                <Link to="/admin/organization-profile">Edit Organization Profile</Link>
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/organization-profile">Edit Organization Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/users">User Management</Link> {/* New link */}
+                </DropdownMenuItem>
+              </>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
