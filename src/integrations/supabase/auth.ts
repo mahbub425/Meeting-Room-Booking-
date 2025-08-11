@@ -116,25 +116,32 @@ export const signOut = async () => {
   }
 };
 
-export const resetPasswordForEmail = async (emailOrPin: string) => {
-  let emailToReset = emailOrPin;
+export const resetPasswordForEmail = async (identifier: string) => {
+  let emailToReset: string | null = null;
 
-  // If it looks like a PIN, try to get the email from the profiles table
-  if (/^\d+$/.test(emailOrPin)) { // Updated PIN regex
-    // Use the new RPC function to get email by PIN
-    const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_pin', { p_pin: emailOrPin });
-
-    if (rpcError) {
-      throw new Error("Email or PIN not found.");
+  // 1. Try to resolve as username
+  if (identifier) {
+    const { data: emailByUsername, error: usernameRpcError } = await supabase.rpc('get_email_by_username', { p_username: identifier });
+    if (!usernameRpcError && emailByUsername) {
+      emailToReset = emailByUsername as string;
     }
+  }
 
-    const fetchedEmail = emailData as string | null;
-
-    if (fetchedEmail) {
-      emailToReset = fetchedEmail;
-    } else {
-      throw new Error("Email or PIN not found.");
+  // 2. If not found by username, try to resolve as PIN
+  if (!emailToReset && /^\d+$/.test(identifier)) {
+    const { data: emailByPin, error: pinRpcError } = await supabase.rpc('get_email_by_pin', { p_pin: identifier });
+    if (!pinRpcError && emailByPin) {
+      emailToReset = emailByPin as string;
     }
+  }
+
+  // 3. If not found by username or PIN, assume it's an email
+  if (!emailToReset) {
+    emailToReset = identifier;
+  }
+
+  if (!emailToReset) {
+    throw new Error("Invalid identifier. Please provide a valid email, username, or PIN.");
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {

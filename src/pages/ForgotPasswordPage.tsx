@@ -11,7 +11,7 @@ import * as z from "zod";
 import { resetPasswordForEmail } from "@/integrations/supabase/auth";
 
 const forgotPasswordSchema = z.object({
-  emailOrPin: z.string().min(1, "Email or PIN is required."),
+  identifier: z.string().min(1, "Email, Username, or PIN is required."),
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
@@ -23,16 +23,16 @@ const ForgotPasswordPage = () => {
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      emailOrPin: "",
+      identifier: "",
     },
   });
 
   const handleSubmit = async (values: ForgotPasswordFormValues) => {
     try {
-      await resetPasswordForEmail(values.emailOrPin);
+      await resetPasswordForEmail(values.identifier);
       toast({
         title: "Password Reset Email Sent",
-        description: "If your email or PIN is registered, you will receive a password reset link shortly.",
+        description: "If your provided information is registered, you will receive a password reset link shortly.",
       });
       navigate("/login"); // Redirect back to login after sending the email
     } catch (error: any) {
@@ -50,15 +50,15 @@ const ForgotPasswordPage = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Forgot Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your registered email or PIN to receive a password reset link.
+            Enter your registered email, username, or PIN to receive a password reset link.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="emailOrPin">Email or PIN</Label>
-              <Input id="emailOrPin" type="text" placeholder="Your Email or PIN" {...form.register("emailOrPin")} />
-              {form.formState.errors.emailOrPin && <p className="text-red-500 text-sm">{form.formState.errors.emailOrPin.message}</p>}
+              <Label htmlFor="identifier">Email, Username, or PIN</Label>
+              <Input id="identifier" type="text" placeholder="Your Email, Username, or PIN" {...form.register("identifier")} />
+              {form.formState.errors.identifier && <p className="text-red-500 text-sm">{form.formState.errors.identifier.message}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Sending..." : "Send Reset Link"}
