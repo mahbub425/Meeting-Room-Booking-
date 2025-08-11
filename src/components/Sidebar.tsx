@@ -79,9 +79,6 @@ export const Sidebar = () => {
     );
   }
 
-  // Always add Profile as the last item
-  navItems.push({ name: "Profile", icon: User, path: "/profile" });
-
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
       <div className="mb-8">
@@ -181,6 +178,20 @@ export const Sidebar = () => {
               <SelectItem value="past">Past</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Profile Link - Moved to the end */}
+        <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+          <Link
+            to="/profile"
+            className={cn(
+              "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+              location.pathname.startsWith("/profile") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+            )}
+          >
+            <User className="mr-3 h-5 w-5" />
+            Profile
+          </Link>
         </div>
       </nav>
       <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
