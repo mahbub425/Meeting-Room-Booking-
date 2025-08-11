@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users } from "lucide-react"; // Added Users icon
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList } from "lucide-react"; // Added LayoutList icon
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -76,7 +76,8 @@ export const Sidebar = () => {
     navItems.push(
       { name: "Admin Dashboard", icon: Building, path: "/admin" },
       { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
-      { name: "User Management", icon: Users, path: "/admin/users" }, // New link
+      { name: "Meeting Room Categories", icon: LayoutList, path: "/admin/categories" }, // New link
+      { name: "User Management", icon: Users, path: "/admin/users" },
     );
   }
 

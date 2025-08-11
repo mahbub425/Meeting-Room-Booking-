@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,12 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 const formSchema = z.object({
   name: z.string().min(1, "Room name is required.").max(50, "Room name must be at most 50 characters."),
+  category_id: z.string().min(1, "Category is required."), // New field
   capacity: z.preprocess(
     (val) => (val === "" ? null : Number(val)),
     z.number().int().min(1, "Capacity must be at least 1.").nullable().optional(),
@@ -33,10 +36,13 @@ interface MeetingRoomFormProps {
 
 export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const { toast } = useToast();
+  const [categories, setCategories] = useState<MeetingRoomCategory[]>([]);
+
   const form = useForm<MeetingRoomFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: initialData?.name || "",
+      category_id: (initialData as any)?.category_id || "", // Cast to any to access category_id
       capacity: initialData?.capacity || undefined,
       facilities: initialData?.facilities || "",
       available_time_limit: initialData?.available_time_limit || "",
@@ -44,6 +50,27 @@ export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, o
       is_enabled: initialData?.is_enabled ?? true,
     },
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('meeting_room_categories')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) {
+        toast({
+          title: "Error fetching categories",
+          description: error.message,
+          variant: "destructive",
+        });
+        setCategories([]);
+      } else {
+        setCategories(data || []);
+      }
+    };
+    fetchCategories();
+  }, [toast]);
 
   const onSubmit = async (values: MeetingRoomFormValues) => {
     try {
@@ -53,6 +80,7 @@ export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, o
           .from('meeting_rooms')
           .update({
             name: values.name,
+            category_id: values.category_id, // Save category_id
             capacity: values.capacity,
             facilities: values.facilities,
             available_time_limit: values.available_time_limit,
@@ -68,6 +96,7 @@ export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, o
           .from('meeting_rooms')
           .insert({
             name: values.name,
+            category_id: values.category_id, // Save category_id
             capacity: values.capacity,
             facilities: values.facilities,
             available_time_limit: values.available_time_limit,
@@ -93,6 +122,20 @@ export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, o
         <Label htmlFor="name">Room Name</Label>
         <Input id="name" {...form.register("name")} />
         {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="category_id">Category</Label>
+        <Select onValueChange={(value) => form.setValue("category_id", value)} value={form.watch("category_id")}>
+          <SelectTrigger id="category_id">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {form.formState.errors.category_id && <p className="text-red-500 text-sm">{form.formState.errors.category_id.message}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="capacity">Capacity</Label>
