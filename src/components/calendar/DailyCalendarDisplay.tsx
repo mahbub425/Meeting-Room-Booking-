@@ -8,6 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface DailyCalendarDisplayProps {
+  onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
+}
+
 const generateTimeSlots = (startHour: number, endHour: number, intervalMinutes: number) => {
   const slots = [];
   let currentTime = setMinutes(setHours(new Date(), startHour), 0);
@@ -22,7 +26,7 @@ const generateTimeSlots = (startHour: number, endHour: number, intervalMinutes: 
 
 const timeSlots = generateTimeSlots(8, 20, 30); // 8 AM to 8 PM, 30-minute intervals
 
-export const DailyCalendarDisplay: React.FC = () => {
+export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCellClick }) => {
   const { selectedDate, bookingStatusFilter } = useDashboardLayout();
   const { toast } = useToast();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
@@ -74,7 +78,7 @@ export const DailyCalendarDisplay: React.FC = () => {
         });
         setBookings([]);
       } else {
-        setBookings(bookingsData || []);
+        setBookings(data || []);
       }
       setLoading(false);
     };
@@ -116,7 +120,12 @@ export const DailyCalendarDisplay: React.FC = () => {
       const bookingStart = parseISO(booking.start_time);
       const bookingEnd = parseISO(booking.end_time);
 
-      if (booking.room_id === roomId && isWithinInterval(slotStart, { start: bookingStart, end: bookingEnd })) {
+      // Check for overlap
+      const overlaps = isWithinInterval(slotStart, { start: bookingStart, end: bookingEnd }) ||
+                       isWithinInterval(slotEnd, { start: bookingStart, end: bookingEnd }) ||
+                       (isBefore(bookingStart, slotStart) && isAfter(bookingEnd, slotEnd));
+
+      if (booking.room_id === roomId && overlaps) {
         if (isSlotPast || isPast(bookingEnd)) {
           return { status: 'past', booking };
         }
@@ -153,17 +162,10 @@ export const DailyCalendarDisplay: React.FC = () => {
 
   const handleCellClick = (roomId: string, timeSlot: string, status: ReturnType<typeof getCellStatus>['status'], booking?: Booking) => {
     if (status === 'available') {
-      toast({
-        title: "Book Room",
-        description: `You clicked on an available slot for room ${roomId} at ${timeSlot}. (Booking form will open here)`,
-      });
-      // TODO: Open booking form
+      const clickedDate = parseISO(`${format(selectedDate, "yyyy-MM-dd")}T${timeSlot}:00`);
+      onCellClick(roomId, clickedDate);
     } else if (booking) {
-      toast({
-        title: "Booking Details",
-        description: `Meeting: ${booking.meeting_title} | Status: ${booking.status} | Time: ${format(parseISO(booking.start_time), 'HH:mm')} - ${format(parseISO(booking.end_time), 'HH:mm')}`,
-      });
-      // TODO: Open booking details popup
+      onCellClick(roomId, parseISO(booking.start_time), booking);
     }
   };
 

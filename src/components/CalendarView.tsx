@@ -5,8 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DailyCalendarDisplay } from "@/components/calendar/DailyCalendarDisplay";
 import { WeeklyCalendarDisplay } from "@/components/calendar/WeeklyCalendarDisplay";
 import { MonthlyCalendarDisplay } from "@/components/calendar/MonthlyCalendarDisplay";
+import { Booking } from "@/types";
 
-export const CalendarView = () => {
+interface CalendarViewProps {
+  onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
+}
+
+export const CalendarView: React.FC<CalendarViewProps> = ({ onCellClick }) => {
   const { selectedDate, viewMode, setViewMode } = useDashboardLayout();
 
   return (
@@ -26,9 +31,9 @@ export const CalendarView = () => {
         </Tabs>
       </div>
 
-      {viewMode === "weekly" && <WeeklyCalendarDisplay />}
-      {viewMode === "daily" && <DailyCalendarDisplay />}
-      {viewMode === "monthly" && <MonthlyCalendarDisplay />}
+      {viewMode === "weekly" && <WeeklyCalendarDisplay onCellClick={onCellClick} />}
+      {viewMode === "daily" && <DailyCalendarDisplay onCellClick={onCellClick} />}
+      {viewMode === "monthly" && <MonthlyCalendarDisplay onCellClick={onCellClick} />}
     </div>
   );
 };

@@ -7,7 +7,11 @@ import { Booking } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const MonthlyCalendarDisplay: React.FC = () => {
+interface MonthlyCalendarDisplayProps {
+  onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
+}
+
+export const MonthlyCalendarDisplay: React.FC<MonthlyCalendarDisplayProps> = ({ onCellClick }) => {
   const { selectedDate, setSelectedDate, setViewMode, bookingStatusFilter } = useDashboardLayout();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -77,6 +81,7 @@ export const MonthlyCalendarDisplay: React.FC = () => {
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
     setViewMode("daily");
+    onCellClick(undefined, date); // Pass date to open booking form for that day
     toast({
       title: "Switched to Daily View",
       description: `Now showing bookings for ${format(date, 'PPP')}.`,

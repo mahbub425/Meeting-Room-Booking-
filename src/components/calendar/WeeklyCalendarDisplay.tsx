@@ -8,7 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const WeeklyCalendarDisplay: React.FC = () => {
+interface WeeklyCalendarDisplayProps {
+  onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
+}
+
+export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ onCellClick }) => {
   const { selectedDate, bookingStatusFilter } = useDashboardLayout();
   const { toast } = useToast();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
@@ -140,17 +144,9 @@ export const WeeklyCalendarDisplay: React.FC = () => {
 
   const handleCellClick = (roomId: string, date: Date, status: ReturnType<typeof getCellStatus>['status'], booking?: Booking) => {
     if (status === 'available') {
-      toast({
-        title: "Book Room",
-        description: `You clicked on an available slot for room ${roomId} on ${format(date, 'PPP')}. (Booking form will open here)`,
-      });
-      // TODO: Open booking form
+      onCellClick(roomId, date);
     } else if (booking) {
-      toast({
-        title: "Booking Details",
-        description: `Meeting: ${booking.meeting_title} | Status: ${booking.status} | Date: ${format(parseISO(booking.start_time), 'PPP')}`,
-      });
-      // TODO: Open booking details popup
+      onCellClick(roomId, date, booking);
     }
   };
 
