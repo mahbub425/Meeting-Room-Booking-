@@ -87,7 +87,7 @@ export const resetPasswordForEmail = async (emailOrPin: string) => {
   let emailToReset = emailOrPin;
 
   // If it looks like a PIN, try to get the email from the profiles table
-  if (/^\d{6,8}$/.test(emailOrPin)) {
+  if (/^\d{1,9}$/.test(emailOrPin)) { // Changed PIN regex
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("email")

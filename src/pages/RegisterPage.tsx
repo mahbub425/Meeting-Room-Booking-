@@ -14,10 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // Define the schema for the registration form
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must be at most 100 characters.").regex(/^[a-zA-Z\s]+$/, "Name must contain only alphabetic characters and spaces."),
-  pin: z.string().regex(/^\d{6,8}$/, "PIN must be 6-8 digits long and numeric."),
+  pin: z.string().regex(/^\d{1,9}$/, "PIN must be 1-9 digits long and numeric."), // Changed PIN regex
   phone: z.string().regex(/^\+880\d{10}$/, "Phone number must be in +8801712345678 format."),
   email: z.string().email("Invalid email format.").regex(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Invalid email format."),
-  password: z.string().min(8, "Password must be at least 8 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."),
+  password: z.string().min(6, "Password must be at least 6 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."), // Changed min length
   confirmPassword: z.string(),
   department: z.string().max(50, "Department must be at most 50 characters.").optional().or(z.literal("")),
   designation: z.string().max(50, "Designation must be at most 50 characters.").optional().or(z.literal("")),
@@ -35,16 +35,23 @@ const formSchema = z.object({
 type RegisterFormValues = z.infer<typeof formSchema>;
 
 const departments = [
-  "Human Resources",
-  "Finance",
-  "Marketing",
-  "Sales",
-  "Engineering",
-  "Operations",
-  "Customer Service",
-  "IT",
-  "Research and Development",
-  "Legal",
+  "Human Resource Management",
+  "Software Development",
+  "Business Development",
+  "Software Quality Assurance",
+  "Operations & Management",
+  "UI & Graphics Design",
+  "TechCare",
+  "Requirement Analysis & UX Design",
+  "Top Management",
+  "DevOps & Network",
+  "Finance & Accounts",
+  "Internal Audit",
+  "Graphics & Creative",
+  "Organization Development",
+  "IT & Hardware",
+  "Legal & Compliance",
+  "Operations (Asset Management)",
 ];
 
 const RegisterPage = () => {
@@ -108,13 +115,31 @@ const RegisterPage = () => {
                 {form.formState.errors.name && <p className="text-red-500 text-sm">{form.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pin">Employee PIN</Label>
-                <Input id="pin" type="text" placeholder="123456" {...form.register("pin")} />
+                <Label htmlFor="pin">PIN</Label> {/* Changed text */}
+                <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} /> {/* Changed placeholder */}
                 {form.formState.errors.pin && <p className="text-red-500 text-sm">{form.formState.errors.pin.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="text" placeholder="+8801712345678" {...form.register("phone")} />
+                <div className="flex items-center">
+                  <span className="flex items-center h-10 px-3 rounded-l-md border border-r-0 bg-gray-50 text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                    +880
+                  </span>
+                  <Input
+                    id="phone"
+                    type="text"
+                    placeholder="1712345678" // Placeholder for remaining digits
+                    {...form.register("phone", {
+                      setValueAs: (value) => `+880${value}`, // Prepend +880 for validation/submission
+                    })}
+                    className="rounded-l-none"
+                    defaultValue={form.getValues("phone")?.replace("+880", "") || ""} // Display without +880
+                    onChange={(e) => {
+                      const rawValue = e.target.value;
+                      form.setValue("phone", `+880${rawValue}`);
+                    }}
+                  />
+                </div>
                 {form.formState.errors.phone && <p className="text-red-500 text-sm">{form.formState.errors.phone.message}</p>}
               </div>
               <div className="space-y-2">
@@ -122,16 +147,7 @@ const RegisterPage = () => {
                 <Input id="email" type="email" placeholder="user@organization.com" {...form.register("email")} />
                 {form.formState.errors.email && <p className="text-red-500 text-sm">{form.formState.errors.email.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" {...form.register("password")} />
-                {form.formState.errors.password && <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input id="confirmPassword" type="password" {...form.register("confirmPassword")} />
-                {form.formState.errors.confirmPassword && <p className="text-red-500 text-sm">{form.formState.errors.confirmPassword.message}</p>}
-              </div>
+              {/* Department and Designation moved here */}
               <div className="space-y-2">
                 <Label htmlFor="department">Department (Optional)</Label>
                 <Select onValueChange={(value) => form.setValue("department", value)} value={form.watch("department")}>
@@ -150,6 +166,17 @@ const RegisterPage = () => {
                 <Label htmlFor="designation">Designation (Optional)</Label>
                 <Input id="designation" type="text" placeholder="Software Engineer" {...form.register("designation")} />
                 {form.formState.errors.designation && <p className="text-red-500 text-sm">{form.formState.errors.designation.message}</p>}
+              </div>
+              {/* Password fields */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" {...form.register("password")} />
+                {form.formState.errors.password && <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input id="confirmPassword" type="password" {...form.register("confirmPassword")} />
+                {form.formState.errors.confirmPassword && <p className="text-red-500 text-sm">{form.formState.errors.confirmPassword.message}</p>}
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>

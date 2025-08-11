@@ -50,13 +50,13 @@ const ForgotPasswordPage = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Forgot Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your registered email or employee PIN to receive a password reset link.
+            Enter your registered email or PIN to receive a password reset link. {/* Changed text */}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="emailOrPin">Email or Employee PIN</Label>
+              <Label htmlFor="emailOrPin">Email or PIN</Label> {/* Changed text */}
               <Input id="emailOrPin" type="text" placeholder="Your Email or PIN" {...form.register("emailOrPin")} />
               {form.formState.errors.emailOrPin && <p className="text-red-500 text-sm">{form.formState.errors.emailOrPin.message}</p>}
             </div>
