@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building, Settings, Users, CalendarCheck } from "lucide-react";
+import { Building, Settings, Users, CalendarCheck, BarChart2 } from "lucide-react"; // Added BarChart2
 import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboardPage = () => {
@@ -150,6 +150,20 @@ const AdminDashboardPage = () => {
 
           {/* Management Sections */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Analytics Dashboard</CardTitle>
+                <CardDescription>View booking trends and room usage statistics.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link to="/admin/analytics">
+                    <BarChart2 className="mr-2 h-4 w-4" /> View Analytics
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Meeting Room Management</CardTitle>
