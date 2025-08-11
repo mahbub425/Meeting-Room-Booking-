@@ -87,15 +87,6 @@ export const TopBar = () => {
             <DropdownMenuItem asChild>
               <Link to="/dashboard">Calendar</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/admin/users">People</Link> {/* Assuming /admin/users for member list */}
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/spots">Spots</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/floor-plan">Floor Plan</Link>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
