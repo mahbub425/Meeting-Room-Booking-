@@ -12,8 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const loginFormSchema = z.object({
-  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."), // Updated PIN regex
-  password: z.string().min(1, "Password is required."),
+  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."),
+  password: z.string().min(1, "Password is required."), // No change needed here as it's already min 1
   rememberMe: z.boolean().default(false),
 });
 

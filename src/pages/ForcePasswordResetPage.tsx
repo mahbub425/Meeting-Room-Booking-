@@ -11,7 +11,7 @@ import * as z from "zod";
 import { updateUserPassword } from "@/integrations/supabase/auth";
 
 const passwordResetSchema = z.object({
-  newPassword: z.string().min(8, "Password must be at least 8 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."),
+  newPassword: z.string().min(6, "Password must be at least 6 characters."), // Updated password regex
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Passwords do not match.",

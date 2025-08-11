@@ -14,10 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // Define the schema for the registration form
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must be at most 100 characters.").regex(/^[a-zA-Z\s]+$/, "Name must contain only alphabetic characters and spaces."),
-  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."), // Updated PIN regex
-  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits long and numeric (e.g., 1712345678)."), // Updated phone regex
+  pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."),
+  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits long and numeric (e.g., 1712345678)."),
   email: z.string().email("Invalid email format.").regex(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, "Invalid email format."),
-  password: z.string().min(6, "Password must be at least 6 characters.").regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).*$/, "Password must include uppercase, lowercase, number, and special character."),
+  password: z.string().min(6, "Password must be at least 6 characters."), // Updated password regex
   confirmPassword: z.string(),
   department: z.string().max(50, "Department must be at most 50 characters.").optional().or(z.literal("")),
   designation: z.string().max(50, "Designation must be at most 50 characters.").optional().or(z.literal("")),
