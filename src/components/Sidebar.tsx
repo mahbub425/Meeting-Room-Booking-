@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSession } from "@/components/SessionContextProvider";
+import { useSession } from<think>**Refining Navigation Item Placement**
+
+I've revised the navigation item order in `src/components/Sidebar.tsx`. The "Profile" item now correctly appears last in the `navItems` array, just before logout.  My recent adjustments focused on dynamically managing the placement of the "Admin Dashboard" and "Meeting Room Management" items based on user roles, ensuring they precede the "Profile" option when applicable.
+
+
+</think> "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,7 +75,6 @@ export const Sidebar = () => {
 
   const navItems = [
     { name: "Calendar", icon: CalendarIcon, path: "/dashboard" },
-    { name: "Profile", icon: User, path: "/profile" },
   ];
 
   if (isAdmin) {
@@ -79,6 +83,9 @@ export const Sidebar = () => {
       { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
     );
   }
+
+  // Always add Profile as the last item
+  navItems.push({ name: "Profile", icon: User, path: "/profile" });
 
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
