@@ -11,7 +11,8 @@ import RoomDetailsPage from "./pages/RoomDetailsPage";
 import ForcePasswordResetPage from "./pages/ForcePasswordResetPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage"; // New import
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import MeetingRoomManagementPage from "./pages/admin/MeetingRoomManagementPage"; // New import
 import { SessionContextProvider } from "./components/SessionContextProvider";
 
 const queryClient = new QueryClient();
@@ -27,7 +28,8 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} /> {/* New route for Admin Dashboard */}
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} /> {/* New route for Meeting Room Management */}
             <Route path="/room/:id" element={<RoomDetailsPage />} />
             <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
