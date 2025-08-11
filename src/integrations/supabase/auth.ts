@@ -71,9 +71,22 @@ export const signInWithPassword = async (pin: string, password: string) => {
   return data;
 };
 
-export const signInAdminWithEmailAndPassword = async (email: string, password: string) => {
+export const signInAdminWithEmailAndPassword = async (username: string, password: string) => {
+  // First, get the email associated with the username using the new RPC function
+  const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_username', { p_username: username });
+
+  if (rpcError) {
+    throw new AuthError("Invalid Username or Password.", 400); // Generic error for security
+  }
+
+  const email = emailData as string | null;
+
+  if (!email) {
+    throw new AuthError("Invalid Username or Password.", 400);
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: email,
     password,
   });
 

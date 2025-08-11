@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 const adminLoginFormSchema = z.object({
-  email: z.string().email("Invalid email format.").min(1, "Email is required."),
+  username: z.string().min(1, "Username is required."),
   password: z.string().min(1, "Password is required."),
 });
 
@@ -23,14 +23,14 @@ const AdminLoginPage = () => {
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(adminLoginFormSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
 
   const handleSubmit = async (values: AdminLoginFormValues) => {
     try {
-      await signInAdminWithEmailAndPassword(values.email, values.password);
+      await signInAdminWithEmailAndPassword(values.username, values.password);
       // Redirection is handled by SessionContextProvider
     } catch (error: any) {
       toast({
@@ -47,15 +47,15 @@ const AdminLoginPage = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
           <CardDescription className="text-center">
-            Enter your admin email and password to access the admin panel.
+            Enter your admin username and password to access the admin panel.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email (Username)</Label>
-              <Input id="email" type="email" placeholder="admin@example.com" {...form.register("email")} />
-              {form.formState.errors.email && <p className="text-red-500 text-sm">{form.formState.errors.email.message}</p>}
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" type="text" placeholder="admin" {...form.register("username")} />
+              {form.formState.errors.username && <p className="text-red-500 text-sm">{form.formState.errors.username.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

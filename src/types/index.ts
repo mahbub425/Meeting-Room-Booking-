@@ -52,4 +52,5 @@ export interface Profile {
   notification_preference: boolean;
   category_access: string[] | null; // New: Added category_access
   is_enabled: boolean; // New: Added is_enabled
+  username: string | null; // New: Added username
 }

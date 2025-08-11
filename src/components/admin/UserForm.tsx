@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(100, "Name must be at most 100 characters.").regex(/^[a-zA-Z\s]+$/, "Name must contain only alphabetic characters and spaces."),
@@ -22,15 +23,23 @@ const formSchema = z.object({
   designation: z.string().max(50, "Designation must be at most 50 characters.").optional().or(z.literal("")),
   is_enabled: z.boolean().default(true),
   category_access: z.array(z.string()).optional(), // Array of category IDs
+  username: z.string().max(50, "Username must be at most 50 characters.").optional().or(z.literal("")), // New: username field
 }).superRefine((data, ctx) => {
-  if (!data.password && !data.email && !data.pin) { // Only for new user, if no initialData
-    if (!data.password && !data.email && !data.pin) {
+  if (!data.password && !data.email && !data.pin && !data.username && !initialData) { // Only for new user, if no initialData
+    if (!data.password) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Password is required for new users.",
         path: ["password"],
       });
     }
+  }
+  if (data.role === 'admin' && !data.username) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Username is required for admin users.",
+      path: ["username"],
+    });
   }
 });
 
@@ -68,8 +77,11 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
       designation: initialData?.designation || "",
       is_enabled: initialData?.is_enabled ?? true,
       category_access: initialData?.category_access || [],
+      username: initialData?.username || "", // Set default for username
     },
   });
+
+  const userRole = form.watch("role");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -113,6 +125,18 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
           }
         }
 
+        // Check if username is changed and if it's unique
+        if (values.username && initialData.username !== values.username) {
+          const { data: existingUser, error: usernameCheckError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', values.username)
+            .neq('id', initialData.id)
+            .single();
+          if (usernameCheckError && usernameCheckError.code !== 'PGRST116') throw usernameCheckError;
+          if (existingUser) throw new Error("Username already exists. Please choose a different one.");
+        }
+
         // Update auth.users table (email and password)
         const authUpdateData: { email?: string; password?: string; data?: object } = {
           data: {
@@ -122,6 +146,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
             department: values.department,
             designation: values.designation,
             role: values.role, // Update role in user_metadata
+            username: values.username || null, // Update username in user_metadata
           }
         };
         if (initialData.email !== values.email) {
@@ -147,6 +172,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
             role: values.role,
             is_enabled: values.is_enabled,
             category_access: values.category_access,
+            username: values.username || null, // Update username in profiles table
           })
           .eq('id', initialData.id);
 
@@ -154,6 +180,17 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
 
       } else {
         // Create new user
+        // Check if username is unique for new user
+        if (values.username) {
+          const { data: existingUser, error: usernameCheckError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', values.username)
+            .single();
+          if (usernameCheckError && usernameCheckError.code !== 'PGRST116') throw usernameCheckError;
+          if (existingUser) throw new Error("Username already exists. Please choose a different one.");
+        }
+
         const { data: userResponse, error: authError } = await supabase.auth.admin.createUser({
           email: values.email,
           password: values.password,
@@ -165,6 +202,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
             department: values.department,
             designation: values.designation,
             role: values.role,
+            username: values.username || null, // Pass username to user_metadata
           },
         });
 
@@ -181,6 +219,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
             is_enabled: values.is_enabled,
             category_access: values.category_access,
             role: values.role, // Ensure role is set correctly in profiles table
+            username: values.username || null, // Ensure username is set correctly in profiles table
           })
           .eq('id', userResponse.user?.id);
 
@@ -251,6 +290,13 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
           </Select>
           {form.formState.errors.role && <p className="text-red-500 text-sm">{form.formState.errors.role.message}</p>}
         </div>
+        {userRole === 'admin' && (
+          <div className="space-y-2">
+            <Label htmlFor="username">Username (for Admin Login)</Label>
+            <Input id="username" type="text" {...form.register("username")} />
+            {form.formState.errors.username && <p className="text-red-500 text-sm">{form.formState.errors.username.message}</p>}
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="password">{initialData ? "New Password (Optional)" : "Password"}</Label>
           <Input id="password" type="password" {...form.register("password")} />

@@ -20,6 +20,7 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onToggleEna
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
+          <TableHead>Username</TableHead> {/* New column */}
           <TableHead>Email</TableHead>
           <TableHead>PIN</TableHead>
           <TableHead>Role</TableHead>
@@ -32,7 +33,7 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onToggleEna
       <TableBody>
         {users.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+            <TableCell colSpan={9} className="text-center py-4 text-gray-500"> {/* Updated colspan */}
               No users found.
             </TableCell>
           </TableRow>
@@ -40,6 +41,7 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onToggleEna
           users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.name}</TableCell>
+              <TableCell>{user.username || "N/A"}</TableCell> {/* Display username */}
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.pin}</TableCell>
               <TableCell>{user.role}</TableCell>

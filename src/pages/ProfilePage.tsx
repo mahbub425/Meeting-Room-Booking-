@@ -29,6 +29,7 @@ const profileSchema = z.object({
   notification_preference: z.boolean().default(true),
   category_access: z.array(z.string()).optional(), // Added for display
   is_enabled: z.boolean().default(true), // Added for display
+  username: z.string().optional().or(z.literal("")), // Added for display
 });
 
 const passwordSchema = z.object({
@@ -72,6 +73,7 @@ const ProfilePage = () => {
       notification_preference: true, // Default value
       category_access: [],
       is_enabled: true,
+      username: "", // Default value
     },
   });
 
@@ -112,6 +114,7 @@ const ProfilePage = () => {
             notification_preference: data.notification_preference ?? true,
             category_access: data.category_access || [],
             is_enabled: data.is_enabled ?? true,
+            username: data.username || "", // Set username
           });
         }
 
@@ -337,6 +340,12 @@ const ProfilePage = () => {
                   <Label>Account Status</Label>
                   <p className={`text-sm font-semibold ${profileForm.watch("is_enabled") ? "text-green-600" : "text-red-600"}`}>
                     {profileForm.watch("is_enabled") ? "Active" : "Disabled"}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Username</Label>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {profileForm.watch("username") || "N/A"}
                   </p>
                 </div>
                 <Button type="submit" disabled={profileForm.formState.isSubmitting}>
