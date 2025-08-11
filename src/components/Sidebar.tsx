@@ -2,12 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSession } from<think>**Refining Navigation Item Placement**
-
-I've revised the navigation item order in `src/components/Sidebar.tsx`. The "Profile" item now correctly appears last in the `navItems` array, just before logout.  My recent adjustments focused on dynamically managing the placement of the "Admin Dashboard" and "Meeting Room Management" items based on user roles, ensuring they precede the "Profile" option when applicable.
-
-
-</think> "@/components/SessionContextProvider";
+import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
