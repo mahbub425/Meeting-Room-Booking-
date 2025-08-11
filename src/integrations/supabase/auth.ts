@@ -71,6 +71,31 @@ export const signInWithPassword = async (pin: string, password: string) => {
   return data;
 };
 
+export const signInAdminWithEmailAndPassword = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  // After successful login, verify if the user is an admin
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user?.id)
+    .single();
+
+  if (profileError || profile?.role !== 'admin') {
+    await supabase.auth.signOut(); // Sign out if not an admin
+    throw new AuthError("Access Denied: Only administrators can log in here.", 403);
+  }
+
+  return data;
+};
+
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) {

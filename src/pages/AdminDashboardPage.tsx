@@ -15,7 +15,7 @@ const AdminDashboardPage = () => {
   const { user, loading } = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // Keep this state to control rendering
   const [stats, setStats] = useState({
     totalRooms: 0,
     pendingBookings: 0,
@@ -33,7 +33,9 @@ const AdminDashboardPage = () => {
           .single();
 
         if (profileError || profile?.role !== 'admin') {
-          navigate("/dashboard"); // Redirect non-admins to regular dashboard
+          // This case should ideally be handled by SessionContextProvider redirect
+          // but keeping it here as a fallback for content rendering.
+          navigate("/dashboard"); 
           return;
         }
         setIsAdmin(true);
@@ -198,9 +200,9 @@ const AdminDashboardPage = () => {
                 <CardDescription>Manage user accounts and roles.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full" variant="outline" disabled>
-                  <Link to="#">
-                    <Users className="mr-2 h-4 w-4" /> Manage Users (Coming Soon)
+                <Button asChild className="w-full">
+                  <Link to="/admin/users">
+                    <Users className="mr-2 h-4 w-4" /> Manage Users
                   </Link>
                 </Button>
               </CardContent>

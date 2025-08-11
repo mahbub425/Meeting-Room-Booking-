@@ -29,17 +29,47 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
       setLoading(false);
 
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-        // Redirect authenticated users from login/register to dashboard
-        if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password") {
-          navigate("/dashboard");
-          toast({
-            title: "Welcome!",
-            description: "You have successfully logged in.",
-          });
+        if (currentSession?.user) {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', currentSession.user.id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching user role:", error);
+            // Fallback to dashboard if role cannot be fetched
+            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+              navigate("/dashboard");
+            }
+            toast({
+              title: "Welcome!",
+              description: "You have successfully logged in.",
+            });
+            return;
+          }
+
+          if (profile?.role === 'admin') {
+            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+              navigate("/admin");
+            }
+            toast({
+              title: "Welcome, Admin!",
+              description: "You have successfully logged in to the admin panel.",
+            });
+          } else {
+            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+              navigate("/dashboard");
+            }
+            toast({
+              title: "Welcome!",
+              description: "You have successfully logged in.",
+            });
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         // Redirect unauthenticated users to login page
-        if (location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset") {
+        if (location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset" && location.pathname !== "/admin-login") {
           navigate("/login");
           toast({
             title: "Logged Out",
@@ -50,13 +80,36 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
     });
 
     // Initial session check
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user || null);
       setLoading(false);
-      if (initialSession && (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password")) {
-        navigate("/dashboard");
-      } else if (!initialSession && location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset") {
+
+      if (initialSession && initialSession.user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', initialSession.user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching initial user role:", error);
+          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+            navigate("/dashboard");
+          }
+          return;
+        }
+
+        if (profile?.role === 'admin') {
+          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+            navigate("/admin");
+          }
+        } else {
+          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+            navigate("/dashboard");
+          }
+        }
+      } else if (!initialSession && location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset" && location.pathname !== "/admin-login") {
         navigate("/login");
       }
     });

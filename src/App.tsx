@@ -17,7 +17,8 @@ import ProfilePage from "./pages/ProfilePage";
 import OrganizationProfilePage from "./pages/admin/OrganizationProfilePage";
 import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
-import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage"; // New import
+import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage";
+import AdminLoginPage from "./pages/AdminLoginPage"; // New import
 import { SessionContextProvider } from "./components/SessionContextProvider";
 import { DashboardLayoutProvider } from "./components/DashboardLayoutContext";
 
@@ -32,12 +33,13 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/admin-login" element={<AdminLoginPage />} /> {/* New Route */}
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/admin" element={<AdminDashboardPage />} />
               <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
-              <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} /> {/* New Route */}
+              <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
               <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
               <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
               <Route path="/admin/users" element={<UserManagementPage />} />
