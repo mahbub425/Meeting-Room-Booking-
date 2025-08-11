@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle } from "lucide-react";
+import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2 } from "lucide-react"; // Added BarChart2
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "@/integrations/supabase/auth";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
@@ -9,12 +9,14 @@ import { Sidebar } from "@/components/Sidebar";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
-import { useSession } from "@/components/SessionContextProvider"; // Import useSession
+import { useSession } from "@/components/SessionContextProvider";
+import { ReportsModal } from "@/components/admin/ReportsModal"; // Import ReportsModal
 
 export const TopBar = () => {
   const { toast } = useToast();
   const { selectedDate, setSelectedDate, toggleSidebar, isSidebarOpen, setViewMode } = useDashboardLayout();
-  const { user } = useSession(); // Get user from session
+  const { user } = useSession();
+  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false); // State for reports modal
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -42,7 +44,7 @@ export const TopBar = () => {
 
   const handleTodayClick = () => {
     setSelectedDate(new Date());
-    setViewMode("weekly"); // Reset to weekly view when "Today" is clicked
+    setViewMode("weekly");
     toast({
       title: "Calendar Reset",
       description: "Calendar view reset to today's date in weekly mode.",
@@ -57,14 +59,13 @@ export const TopBar = () => {
   };
 
   const handleHelpClick = () => {
-    // In a real app, this would open a modal or redirect to a tutorial page
     toast({
       title: "Help & Tutorial",
-      description: "Help content coming soon!", // Placeholder
+      description: "Help content coming soon!",
     });
   };
 
-  const isAdmin = user?.user_metadata?.role === 'admin'; // Check if user is admin
+  const isAdmin = user?.user_metadata?.role === 'admin';
 
   return (
     <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -80,7 +81,6 @@ export const TopBar = () => {
           </SheetContent>
         </Sheet>
         <span className="text-lg font-semibold text-gray-900 dark:text-gray-50">OnnoRokom Meeting Booking System</span>
-        {/* Three-Dot Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="ml-4">
@@ -105,16 +105,18 @@ export const TopBar = () => {
           <Share2 className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Button>
         <span className="text-lg font-semibold text-gray-900 dark:text-gray-50 hidden md:block">OnnoRokom Group</span>
-        {/* Notification Icon */}
+        {/* Report Icon - Only for Admins */}
+        {isAdmin && (
+          <Button variant="ghost" size="icon" onClick={() => setIsReportsModalOpen(true)}>
+            <BarChart2 className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" onClick={handleNotificationClick}>
           <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-          {/* Add notification count badge here if available */}
         </Button>
-        {/* Help Icon */}
         <Button variant="ghost" size="icon" onClick={handleHelpClick}>
           <HelpCircle className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Button>
-        {/* Profile Icon Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -135,6 +137,12 @@ export const TopBar = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {isAdmin && (
+        <ReportsModal
+          isOpen={isReportsModalOpen}
+          onClose={() => setIsReportsModalOpen(false)}
+        />
+      )}
     </header>
   );
 };
