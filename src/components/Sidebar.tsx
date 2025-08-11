@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, Users, Building, LogOut, User } from "lucide-react"; // Added User icon
+import { Calendar, Users, Building, LogOut, User, LayoutGrid, Map } from "lucide-react"; // Added LayoutGrid, Map icons
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDashboardLayout } from "@/components/DashboardLayoutContext"; // Import useDashboardLayout
 
 export const Sidebar = () => {
   const { user, loading } = useSession();
   const { toast } = useToast();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const { bookingStatusFilter, setBookingStatusFilter } = useDashboardLayout(); // Use bookingStatusFilter from context
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -56,20 +59,28 @@ export const Sidebar = () => {
 
   const navItems = [
     { name: "Calendar", icon: Calendar, path: "/dashboard" },
-    { name: "Profile", icon: User, path: "/profile" }, // New Profile link
+    { name: "Profile", icon: User, path: "/profile" },
+    { name: "People", icon: Users, path: "/admin/users" }, // Link to User Management for all users to view
+    { name: "Spots", icon: LayoutGrid, path: "/spots" }, // Link to Meeting Room Grid
+    { name: "Floor Plan", icon: Map, path: "/floor-plan" }, // Link to Floor Plan
   ];
 
   if (isAdmin) {
+    // Admin specific links are already covered by the general links if they are also accessible to admins
+    // If there are admin-exclusive features, they would be added here.
+    // For now, "User Management" and "Meeting Room Management" are covered by "People" and "Spots"
+    // but I'll keep the explicit admin links for clarity as per previous request.
     navItems.push(
-      { name: "User Management", icon: Users, path: "/admin/users" },
-      { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
+      { name: "Admin Dashboard", icon: Building, path: "/admin" }, // General admin dashboard
+      // { name: "User Management", icon: Users, path: "/admin/users" }, // Already in general navItems
+      // { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" }, // Already in general navItems
     );
   }
 
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">OnnoRokom Meeting Booking System</h2> {/* Updated Logo Text */}
+        <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">OnnoRokom Meeting Booking System</h2>
       </div>
       <nav className="flex-1">
         <ul className="space-y-2">
@@ -88,6 +99,20 @@ export const Sidebar = () => {
             </li>
           ))}
         </ul>
+        {/* Booking Status Filter */}
+        <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Booking Status</h4>
+          <Select onValueChange={setBookingStatusFilter} value={bookingStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Bookings</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="past">Past</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </nav>
       <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
         <button

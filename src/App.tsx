@@ -13,8 +13,12 @@ import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import MeetingRoomManagementPage from "./pages/admin/MeetingRoomManagementPage";
+import ProfilePage from "./pages/ProfilePage"; // New import
+import UserManagementPage from "./pages/UserManagementPage"; // New import
+import MeetingRoomGridPage from "./pages/MeetingRoomGridPage"; // New import
+import FloorPlanPage from "./pages/FloorPlanPage"; // New import
 import { SessionContextProvider } from "./components/SessionContextProvider";
-import { DashboardLayoutProvider } from "./components/DashboardLayoutContext"; // New import
+import { DashboardLayoutProvider } from "./components/DashboardLayoutContext";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +27,7 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <SessionContextProvider>
-          <DashboardLayoutProvider> {/* Wrap routes that need layout context */}
+          <DashboardLayoutProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
@@ -32,6 +36,10 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/admin" element={<AdminDashboardPage />} />
               <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
+              <Route path="/profile" element={<ProfilePage />} /> {/* New Route */}
+              <Route path="/admin/users" element={<UserManagementPage />} /> {/* New Route */}
+              <Route path="/spots" element={<MeetingRoomGridPage />} /> {/* New Route */}
+              <Route path="/floor-plan" element={<FloorPlanPage />} /> {/* New Route */}
               <Route path="/room/:id" element={<RoomDetailsPage />} />
               <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
