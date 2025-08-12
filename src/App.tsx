@@ -20,7 +20,7 @@ import UserManagementPage from "./pages/admin/UserManagementPage";
 import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import { SessionContextProvider } from "./components/SessionContextProvider";
-import { DashboardLayoutProvider } from "./components/DashboardLayoutContext";
+// import { DashboardLayoutProvider } from "./components/DashboardLayoutContext"; // Removed as it's now used within DashboardPage
 
 const queryClient = new QueryClient();
 
@@ -29,27 +29,26 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <SessionContextProvider>
-          <DashboardLayoutProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/admin" element={<AdminLoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-              <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
-              <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
-              <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
-              <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
-              <Route path="/admin/users" element={<UserManagementPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/room/:id" element={<RoomDetailsPage />} />
-              <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </DashboardLayoutProvider>
+          {/* DashboardLayoutProvider is now used within DashboardPage */}
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin" element={<AdminLoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
+            <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
+            <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
+            <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
+            <Route path="/admin/users" element={<UserManagementPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/room/:id" element={<RoomDetailsPage />} />
+            <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </SessionContextProvider>
       </BrowserRouter>
     </TooltipProvider>

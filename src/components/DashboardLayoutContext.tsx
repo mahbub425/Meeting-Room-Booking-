@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { startOfWeek, endOfWeek, addDays } from "date-fns";
+import { Booking } from "@/types"; // Import Booking type
 
 interface DashboardLayoutContextType {
   isSidebarOpen: boolean;
@@ -10,11 +11,12 @@ interface DashboardLayoutContextType {
   setViewMode: (mode: "weekly" | "daily") => void; // Setter for view mode
   bookingStatusFilter: "all" | "upcoming" | "past";
   setBookingStatusFilter: (status: "all" | "upcoming" | "past") => void;
+  onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void; // New: Function to open booking form
 }
 
 const DashboardLayoutContext = createContext<DashboardLayoutContextType | undefined>(undefined);
 
-export const DashboardLayoutProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const DashboardLayoutProvider: React.FC<{ children: ReactNode; onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void }> = ({ children, onCellClick }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const today = new Date();
   const initialStartDate = today;
@@ -42,6 +44,7 @@ export const DashboardLayoutProvider: React.FC<{ children: ReactNode }> = ({ chi
         setViewMode,
         bookingStatusFilter,
         setBookingStatusFilter,
+        onCellClick, // Pass the onCellClick function
       }}
     >
       {children}

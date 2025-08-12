@@ -20,7 +20,7 @@ export const Sidebar = () => {
   const { toast } = useToast();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
-  const { selectedDateRange, setSelectedDateRange, viewMode, setViewMode } = useDashboardLayout();
+  const { selectedDateRange, setSelectedDateRange, viewMode, setViewMode, onCellClick } = useDashboardLayout(); // Get onCellClick
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [categories, setCategories] = useState<MeetingRoomCategory[]>([]);
   const [calendarMonth, setCalendarMonth] = useState<Date>(selectedDateRange.from); // State to control calendar month display
@@ -88,6 +88,13 @@ export const Sidebar = () => {
         to: addDays(range.from, 6),
       });
       setCalendarMonth(range.from); // Keep calendar month in sync with selected date
+
+      // Also trigger the booking form for the selected single date
+      onCellClick(undefined, range.from); // Pass undefined for room and booking, only the date
+      toast({
+        title: "Date Selected",
+        description: `Booking form opened for ${format(range.from, 'PPP')}.`,
+      });
     } else {
       // If nothing is selected (e.g., clearing selection), reset to current week
       const today = new Date();

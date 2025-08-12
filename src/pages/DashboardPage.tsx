@@ -8,6 +8,7 @@ import { PlusCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BookingForm } from "@/components/BookingForm";
 import { Booking } from "@/types"; // Import Booking type
+import { DashboardLayoutProvider } from "@/components/DashboardLayoutContext"; // Import DashboardLayoutProvider
 
 const DashboardPage = () => {
   const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
@@ -30,32 +31,34 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
-      <TopBar />
-      <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
-        <Sidebar />
-        <main className="flex-1 p-6 relative">
-          <CalendarView onCellClick={handleCellClick} /> {/* Pass handler to CalendarView */}
-        </main>
-      </div>
-      <MadeWithDyad />
+    <DashboardLayoutProvider onCellClick={handleCellClick}> {/* Pass handleCellClick here */}
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+        <TopBar />
+        <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
+          <Sidebar />
+          <main className="flex-1 p-6 relative">
+            <CalendarView onCellClick={handleCellClick} /> {/* Pass handler to CalendarView */}
+          </main>
+        </div>
+        <MadeWithDyad />
 
-      <Dialog open={isBookingFormOpen} onOpenChange={setIsBookingFormOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingBooking ? "Edit Meeting Room Booking" : "Book New Meeting Room"}</DialogTitle>
-            <DialogDescription>Fill in the details to book a meeting room.</DialogDescription>
-          </DialogHeader>
-          <BookingForm
-            initialData={editingBooking}
-            preselectedRoomId={preselectedRoomId}
-            preselectedDate={preselectedDate}
-            onSuccess={handleBookingFormSuccess}
-            onCancel={() => setIsBookingFormOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Dialog open={isBookingFormOpen} onOpenChange={setIsBookingFormOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingBooking ? "Edit Meeting Room Booking" : "Book New Meeting Room"}</DialogTitle>
+              <DialogDescription>Fill in the details to book a meeting room.</DialogDescription>
+            </DialogHeader>
+            <BookingForm
+              initialData={editingBooking}
+              preselectedRoomId={preselectedRoomId}
+              preselectedDate={preselectedDate}
+              onSuccess={handleBookingFormSuccess}
+              onCancel={() => setIsBookingFormOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </DashboardLayoutProvider>
   );
 };
 
