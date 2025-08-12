@@ -80,27 +80,28 @@ export const Sidebar = () => {
     }
   };
 
-  const handleDateSelect = (range: DateRange | undefined) => {
-    if (range?.from) {
-      // If a 'from' date is selected, set the range to 7 days starting from 'from'
+  // Modified handleDateSelect to handle single date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Set the selected date range to a single day
       setSelectedDateRange({
-        from: range.from,
-        to: addDays(range.from, 6),
+        from: date,
+        to: date,
       });
-      setCalendarMonth(range.from); // Keep calendar month in sync with selected date
+      setCalendarMonth(date); // Keep calendar month in sync with selected date
 
       // Also trigger the booking form for the selected single date
-      onCellClick(undefined, range.from); // Pass undefined for room and booking, only the date
+      onCellClick(undefined, date); // Pass undefined for room and booking, only the date
       toast({
         title: "Date Selected",
-        description: `Booking form opened for ${format(range.from, 'PPP')}.`,
+        description: `Booking form opened for ${format(date, 'PPP')}.`,
       });
     } else {
-      // If nothing is selected (e.g., clearing selection), reset to current week
+      // If nothing is selected (e.g., clearing selection), reset to current day
       const today = new Date();
       setSelectedDateRange({
         from: today,
-        to: addDays(today, 6),
+        to: today,
       });
       setCalendarMonth(today);
     }
@@ -130,8 +131,8 @@ export const Sidebar = () => {
         {/* Mini-Calendar */}
         <div className="mb-6">
           <Calendar
-            mode="range" // Changed to range mode
-            selected={selectedDateRange}
+            mode="single" // Changed to single mode
+            selected={selectedDateRange.from} // Select only the 'from' date
             onSelect={handleDateSelect}
             className="rounded-md border w-full p-0 [&_td]:w-8 [&_td]:h-8 [&_th]:pb-1 [&_div]:space-x-0 [&_div]:gap-0" // Compact styling
             month={calendarMonth} // Control month display
@@ -164,10 +165,10 @@ export const Sidebar = () => {
             }}
           />
           <div className="text-center text-sm mt-2 text-gray-700 dark:text-gray-300">
-            {selectedDateRange.from && selectedDateRange.to ? (
-              `${format(selectedDateRange.from, "MMM d, yyyy")} - ${format(selectedDateRange.to, "MMM d, yyyy")}`
+            {selectedDateRange.from ? (
+              format(selectedDateRange.from, "MMM d, yyyy")
             ) : (
-              "Select a date range"
+              "Select a date"
             )}
           </div>
         </div>
