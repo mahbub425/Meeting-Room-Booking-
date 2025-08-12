@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react"; // Import Plus icon
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 interface WeeklyCalendarDisplayProps {
   onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
@@ -18,6 +19,7 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
   const { toast } = useToast();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [categories, setCategories] = useState<MeetingRoomCategory[]>([]); // State for categories
   const [loading, setLoading] = useState(true);
 
   const startOfSelectedWeek = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday as start of week
@@ -25,8 +27,9 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
   const daysOfWeek = eachDayOfInterval({ start: startOfSelectedWeek, end: endOfSelectedWeek });
 
   useEffect(() => {
-    const fetchRoomsAndBookings = async () => {
+    const fetchData = async () => {
       setLoading(true);
+      // Fetch rooms
       const { data: roomsData, error: roomsError } = await supabase
         .from('meeting_rooms')
         .select('*')
@@ -44,6 +47,24 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
         setMeetingRooms(roomsData || []);
       }
 
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('meeting_room_categories')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (categoriesError) {
+        toast({
+          title: "Error fetching categories",
+          description: categoriesError.message,
+          variant: "destructive",
+        });
+        setCategories([]);
+      } else {
+        setCategories(categoriesData || []);
+      }
+
+      // Fetch bookings
       const startOfWeekISO = format(startOfSelectedWeek, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
       const endOfWeekISO = format(endOfSelectedWeek, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
@@ -74,14 +95,14 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
       setLoading(false);
     };
 
-    fetchRoomsAndBookings();
+    fetchData();
 
     // Set up real-time subscription for bookings
     const bookingSubscription = supabase
       .channel('public:bookings')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
         console.log('Change received!', payload);
-        fetchRoomsAndBookings(); // Re-fetch data on any change
+        fetchData(); // Re-fetch data on any change
       })
       .subscribe();
 
@@ -90,13 +111,23 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
       .channel('public:meeting_rooms')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_rooms' }, payload => {
         console.log('Change received!', payload);
-        fetchRoomsAndBookings(); // Re-fetch data on any change
+        fetchData(); // Re-fetch data on any change
+      })
+      .subscribe();
+
+    // Set up real-time subscription for meeting_room_categories
+    const categoriesSubscription = supabase
+      .channel('public:meeting_room_categories')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'meeting_room_categories' }, payload => {
+        console.log('Change received!', payload);
+        fetchData(); // Re-fetch data on any change
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(bookingSubscription);
       supabase.removeChannel(roomsSubscription);
+      supabase.removeChannel(categoriesSubscription);
     };
   }, [selectedDate, bookingStatusFilter, toast]);
 
@@ -147,6 +178,12 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
     }
   };
 
+  const getCategoryColor = (categoryId: string | null) => {
+    if (!categoryId) return "#ccc"; // Default grey
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.color || "#ccc";
+  };
+
   const handleCellClick = (roomId: string, date: Date, status: ReturnType<typeof getCellStatus>['status'], booking?: Booking) => {
     if (status === 'available') {
       onCellClick(roomId, date);
@@ -188,7 +225,10 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
         <TableBody>
           {meetingRooms.map((room) => (
             <TableRow key={room.id}>
-              <TableCell className="font-medium sticky left-0 bg-white dark:bg-gray-800 z-10">{room.name}</TableCell>
+              <TableCell className="font-medium sticky left-0 bg-white dark:bg-gray-800 z-10 flex items-center">
+                <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: getCategoryColor(room.category_id) }}></span>
+                {room.name}
+              </TableCell>
               {daysOfWeek.map((day) => {
                 const { status, booking } = getCellStatus(room.id, day);
                 return (
