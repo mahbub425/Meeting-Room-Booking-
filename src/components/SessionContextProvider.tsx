@@ -14,26 +14,6 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
-// Hardcoded Super Admin user and session objects
-const SUPER_ADMIN_USER = {
-  id: 'super-admin',
-  aud: 'authenticated',
-  role: 'authenticated',
-  email: 'superadmin@local.host',
-  user_metadata: { role: 'admin', name: 'Super Admin' },
-  app_metadata: { provider: 'email' },
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
-
-const SUPER_ADMIN_SESSION = {
-  access_token: 'super-admin-token',
-  token_type: 'bearer',
-  expires_in: 3600,
-  refresh_token: 'super-admin-refresh-token',
-  user: SUPER_ADMIN_USER,
-};
-
 export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -43,17 +23,6 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for hardcoded super admin login
-    const isSuperAdmin = localStorage.getItem("isSuperAdmin") === "true";
-    if (isSuperAdmin) {
-      setSession(SUPER_ADMIN_SESSION as any);
-      setUser(SUPER_ADMIN_USER as any);
-      setLoading(false);
-      // We don't subscribe to auth changes for the super admin
-      // to prevent being logged out by Supabase state changes.
-      return;
-    }
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       setSession(currentSession);
       setUser(currentSession?.user || null);
@@ -98,7 +67,6 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        localStorage.removeItem("isSuperAdmin"); // Also clear super admin flag on logout
         if (!["/login", "/register", "/forgot-password", "/force-password-reset", "/admin"].includes(location.pathname)) {
           navigate("/login");
           toast({

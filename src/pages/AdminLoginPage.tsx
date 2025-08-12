@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { signInAdminWithEmailAndPassword } from "@/integrations/supabase/auth";
 
 const adminLoginFormSchema = z.object({
   username: z.string().min(1, "Username is required."),
@@ -27,22 +28,14 @@ const AdminLoginPage = () => {
     },
   });
 
-  const handleSubmit = (values: AdminLoginFormValues) => {
-    // This is a hardcoded login for a super admin.
-    // It bypasses the database and sets a flag in local storage.
-    // This is a security risk and should be used with caution.
-    if (values.username === "admin" && values.password === "123456") {
-      localStorage.setItem("isSuperAdmin", "true");
+  const handleSubmit = async (values: AdminLoginFormValues) => {
+    try {
+      await signInAdminWithEmailAndPassword(values.username, values.password);
+      // Redirection is now handled by SessionContextProvider
+    } catch (error: any) {
       toast({
-        title: "Welcome, Super Admin!",
-        description: "You have successfully logged in.",
-      });
-      // Force a full reload to ensure SessionContextProvider picks up the change
-      window.location.href = "/admin/dashboard";
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Incorrect User name or password.",
+        title: "Admin Login Failed",
+        description: error.message || "Invalid username or password, or you do not have admin privileges.",
         variant: "destructive",
       });
     }
@@ -61,7 +54,7 @@ const AdminLoginPage = () => {
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
-              <Input id="username" type="text" placeholder="admin" {...form.register("username")} />
+              <Input id="username" type="text" placeholder="admin_username" {...form.register("username")} />
               {form.formState.errors.username && <p className="text-red-500 text-sm">{form.formState.errors.username.message}</p>}
             </div>
             <div className="space-y-2">
