@@ -12,13 +12,14 @@ interface MonthlyCalendarDisplayProps {
 }
 
 export const MonthlyCalendarDisplay: React.FC<MonthlyCalendarDisplayProps> = ({ onCellClick }) => {
-  const { selectedDate, setSelectedDate, setViewMode, bookingStatusFilter } = useDashboardLayout();
+  const { selectedDateRange, setSelectedDateRange, setViewMode, bookingStatusFilter } = useDashboardLayout(); // Changed selectedDate to selectedDateRange
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const startOfCurrentMonth = startOfMonth(selectedDate);
-  const endOfCurrentMonth = endOfMonth(selectedDate);
+  // Use the 'from' date of the range to determine the month for display purposes
+  const startOfCurrentMonth = startOfMonth(selectedDateRange.from);
+  const endOfCurrentMonth = endOfMonth(selectedDateRange.from);
   const daysInMonth = eachDayOfInterval({ start: startOfCurrentMonth, end: endOfCurrentMonth });
 
   // Pad the start of the month to align with the first day of the week (Sunday = 0)
@@ -28,8 +29,8 @@ export const MonthlyCalendarDisplay: React.FC<MonthlyCalendarDisplayProps> = ({ 
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true);
-      const startOfMonthISO = format(startOfMonth(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-      const endOfMonthISO = format(endOfMonth(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      const startOfMonthISO = format(startOfMonth(selectedDateRange.from), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Use selectedDateRange.from
+      const endOfMonthISO = format(endOfMonth(selectedDateRange.from), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"); // Use selectedDateRange.from
 
       let query = supabase
         .from('bookings')
@@ -72,14 +73,15 @@ export const MonthlyCalendarDisplay: React.FC<MonthlyCalendarDisplayProps> = ({ 
     return () => {
       supabase.removeChannel(bookingSubscription);
     };
-  }, [selectedDate, bookingStatusFilter, toast]);
+  }, [selectedDateRange, bookingStatusFilter, toast]); // Depend on selectedDateRange
 
   const getBookingsForDay = (date: Date) => {
     return bookings.filter(booking => isSameDay(parseISO(booking.start_time), date));
   };
 
   const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
+    // When a day is clicked in monthly view, switch to daily view for that day
+    setSelectedDateRange({ from: date, to: date }); // Set a single day range
     setViewMode("daily");
     onCellClick(undefined, date); // Pass date to open booking form for that day
     toast({

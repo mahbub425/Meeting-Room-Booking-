@@ -15,15 +15,16 @@ interface WeeklyCalendarDisplayProps {
 }
 
 export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ onCellClick }) => {
-  const { selectedDate, bookingStatusFilter } = useDashboardLayout();
+  const { selectedDateRange, bookingStatusFilter } = useDashboardLayout(); // Changed selectedDate to selectedDateRange
   const { toast } = useToast();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [categories, setCategories] = useState<MeetingRoomCategory[]>([]); // State for categories
   const [loading, setLoading] = useState(true);
 
-  const startOfSelectedWeek = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday as start of week
-  const endOfSelectedWeek = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday as end of week
+  // Use the selectedDateRange from context
+  const startOfSelectedWeek = selectedDateRange.from;
+  const endOfSelectedWeek = selectedDateRange.to;
   const daysOfWeek = eachDayOfInterval({ start: startOfSelectedWeek, end: endOfSelectedWeek });
 
   useEffect(() => {
@@ -129,7 +130,7 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
       supabase.removeChannel(roomsSubscription);
       supabase.removeChannel(categoriesSubscription);
     };
-  }, [selectedDate, bookingStatusFilter, toast]);
+  }, [selectedDateRange, bookingStatusFilter, toast]); // Depend on selectedDateRange
 
   const getCellStatus = (roomId: string, date: Date): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => {
     const now = new Date();

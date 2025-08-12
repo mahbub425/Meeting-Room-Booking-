@@ -6,7 +6,7 @@ import { signOut } from "@/integrations/supabase/auth";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/Sidebar";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek } from "date-fns"; // Import startOfWeek, endOfWeek
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
 import { useSession } from "@/components/SessionContextProvider";
@@ -14,7 +14,7 @@ import { ReportsModal } from "@/components/admin/ReportsModal";
 
 export const TopBar = () => {
   const { toast } = useToast();
-  const { selectedDate, setSelectedDate, toggleSidebar, isSidebarOpen, setViewMode } = useDashboardLayout();
+  const { selectedDateRange, setSelectedDateRange, toggleSidebar, isSidebarOpen, setViewMode } = useDashboardLayout();
   const { user } = useSession();
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
 
@@ -43,7 +43,11 @@ export const TopBar = () => {
   };
 
   const handleTodayClick = () => {
-    setSelectedDate(new Date());
+    const today = new Date();
+    setSelectedDateRange({
+      from: startOfWeek(today, { weekStartsOn: 0 }),
+      to: endOfWeek(today, { weekStartsOn: 0 }),
+    });
     setViewMode("weekly");
     toast({
       title: "Calendar Reset",
@@ -90,7 +94,7 @@ export const TopBar = () => {
             Today
           </Button>
           <span className="text-gray-700 dark:text-gray-300 font-medium">
-            {format(selectedDate, "PPP")} {/* Changed to display full date */}
+            {format(selectedDateRange.from, "PPP")} {/* Changed to display full date */}
           </span>
         </div>
       </div>

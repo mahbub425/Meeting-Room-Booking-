@@ -28,11 +28,14 @@ const generateTimeSlots = (startHour: number, endHour: number, intervalMinutes: 
 const timeSlots = generateTimeSlots(8, 20, 30); // 8 AM to 8 PM, 30-minute intervals
 
 export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCellClick }) => {
-  const { selectedDate, bookingStatusFilter } = useDashboardLayout();
+  const { selectedDateRange, bookingStatusFilter } = useDashboardLayout(); // Changed selectedDate to selectedDateRange
   const { toast } = useToast();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Use the 'from' date of the range for the daily view
+  const selectedDay = selectedDateRange.from;
 
   useEffect(() => {
     const fetchRoomsAndBookings = async () => {
@@ -54,8 +57,8 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
         setMeetingRooms(roomsData || []);
       }
 
-      const startOfDayISO = format(startOfDay(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-      const endOfDayISO = format(endOfDay(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      const startOfDayISO = format(startOfDay(selectedDay), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      const endOfDayISO = format(endOfDay(selectedDay), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
       let query = supabase
         .from('bookings')
@@ -108,14 +111,14 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
       supabase.removeChannel(bookingSubscription);
       supabase.removeChannel(roomsSubscription);
     };
-  }, [selectedDate, bookingStatusFilter, toast]);
+  }, [selectedDay, bookingStatusFilter, toast]); // Depend on selectedDay
 
   const getCellStatus = (roomId: string, timeSlot: string): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => { // Added 'approved'
-    const slotStart = parseISO(`${format(selectedDate, "yyyy-MM-dd")}T${timeSlot}:00`);
+    const slotStart = parseISO(`${format(selectedDay, "yyyy-MM-dd")}T${timeSlot}:00`);
     const slotEnd = setMinutes(slotStart, slotStart.getMinutes() + 30); // 30-minute slot
 
     const now = new Date();
-    const isSlotPast = isPast(slotEnd) && !isToday(selectedDate); // If the date is today, only past if the time slot itself is past. If not today, the whole day is past.
+    const isSlotPast = isPast(slotEnd) && !isToday(selectedDay); // If the date is today, only past if the time slot itself is past. If not today, the whole day is past.
 
     for (const booking of bookings) {
       const bookingStart = parseISO(booking.start_time);
@@ -163,7 +166,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
 
   const handleCellClick = (roomId: string, timeSlot: string, status: ReturnType<typeof getCellStatus>['status'], booking?: Booking) => {
     if (status === 'available') {
-      const clickedDate = parseISO(`${format(selectedDate, "yyyy-MM-dd")}T${timeSlot}:00`);
+      const clickedDate = parseISO(`${format(selectedDay, "yyyy-MM-dd")}T${timeSlot}:00`);
       onCellClick(roomId, clickedDate);
     } else if (booking) {
       onCellClick(roomId, parseISO(booking.start_time), booking);

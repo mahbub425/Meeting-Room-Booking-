@@ -1,24 +1,31 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { addDays } from "date-fns";
+import { startOfWeek, endOfWeek } from "date-fns";
 
 interface DashboardLayoutContextType {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
-  selectedDate: Date;
-  setSelectedDate: (date: Date) => void;
-  viewMode: "weekly" | "daily" | "monthly"; // Added 'monthly'
-  setViewMode: (mode: "weekly" | "daily" | "monthly") => void; // Added 'monthly'
-  bookingStatusFilter: "all" | "upcoming" | "past"; // New state for booking status filter
-  setBookingStatusFilter: (status: "all" | "upcoming" | "past") => void; // Setter for booking status filter
+  selectedDateRange: { from: Date; to: Date }; // Changed to range
+  setSelectedDateRange: (range: { from: Date; to: Date }) => void; // Setter for range
+  viewMode: "weekly" | "daily"; // Changed options to only 'weekly' and 'daily'
+  setViewMode: (mode: "weekly" | "daily") => void; // Setter for view mode
+  bookingStatusFilter: "all" | "upcoming" | "past";
+  setBookingStatusFilter: (status: "all" | "upcoming" | "past") => void;
 }
 
 const DashboardLayoutContext = createContext<DashboardLayoutContextType | undefined>(undefined);
 
 export const DashboardLayoutProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<"weekly" | "daily" | "monthly">("weekly"); // Default to weekly
-  const [bookingStatusFilter, setBookingStatusFilter] = useState<"all" | "upcoming" | "past">("all"); // Default to all
+  const today = new Date();
+  const initialWeekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday as start of week
+  const initialWeekEnd = endOfWeek(today, { weekStartsOn: 0 }); // Saturday as end of week
+
+  const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date }>({
+    from: initialWeekStart,
+    to: initialWeekEnd,
+  });
+  const [viewMode, setViewMode] = useState<"weekly" | "daily">("weekly"); // Default to weekly
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<"all" | "upcoming" | "past">("all");
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -29,8 +36,8 @@ export const DashboardLayoutProvider: React.FC<{ children: ReactNode }> = ({ chi
       value={{
         isSidebarOpen,
         toggleSidebar,
-        selectedDate,
-        setSelectedDate,
+        selectedDateRange,
+        setSelectedDateRange,
         viewMode,
         setViewMode,
         bookingStatusFilter,

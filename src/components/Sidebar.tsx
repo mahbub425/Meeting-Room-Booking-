@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -10,18 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format, addMonths, subMonths, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { format, addMonths, subMonths, startOfWeek, endOfWeek, addDays, isSameDay } from "date-fns";
 import { MeetingRoom } from "@/types";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
+import { DateRange } from "react-day-picker"; // Import DateRange type
 
 export const Sidebar = () => {
   const { user, loading } = useSession();
   const { toast } = useToast();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
-  const { selectedDate, setSelectedDate, viewMode, setViewMode, bookingStatusFilter, setBookingStatusFilter } = useDashboardLayout();
+  const { selectedDateRange, setSelectedDateRange, viewMode, setViewMode } = useDashboardLayout();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [categories, setCategories] = useState<MeetingRoomCategory[]>([]);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(selectedDateRange.from); // State to control calendar month display
 
   useEffect(() => {
     const fetchUserRoleAndRooms = async () => {
@@ -102,9 +104,28 @@ export const Sidebar = () => {
 
   const handleMonthChange = (direction: "prev" | "next") => {
     if (direction === "prev") {
-      setSelectedDate(subMonths(selectedDate, 1));
+      setCalendarMonth(subMonths(calendarMonth, 1));
     } else {
-      setSelectedDate(addMonths(selectedDate, 1));
+      setCalendarMonth(addMonths(calendarMonth, 1));
+    }
+  };
+
+  const handleDateSelect = (range: DateRange | undefined) => {
+    if (range?.from) {
+      // If a 'from' date is selected, set the range to 7 days starting from 'from'
+      setSelectedDateRange({
+        from: range.from,
+        to: addDays(range.from, 6),
+      });
+      setCalendarMonth(range.from); // Keep calendar month in sync with selected date
+    } else {
+      // If nothing is selected (e.g., clearing selection), reset to current week
+      const today = new Date();
+      setSelectedDateRange({
+        from: startOfWeek(today, { weekStartsOn: 0 }),
+        to: endOfWeek(today, { weekStartsOn: 0 }),
+      });
+      setCalendarMonth(today);
     }
   };
 
@@ -114,35 +135,34 @@ export const Sidebar = () => {
     return category?.color || "#ccc";
   };
 
-  const startOfSelectedWeek = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday as start of week
-  const endOfSelectedWeek = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday as end of week
-
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">OnnoRokom Meeting Booking System</h2>
       </div>
       <nav className="flex-1">
-        {/* Mini Calendar in Sidebar */}
+        {/* Month Selector */}
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange("prev")}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h4 className="text-md font-semibold text-gray-900 dark:text-gray-50">
+            {format(calendarMonth, "MMMM yyyy")}
+          </h4>
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange("next")}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Mini-Calendar */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <Button variant="ghost" size="icon" onClick={() => handleMonthChange("prev")}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h4 className="text-md font-semibold text-gray-900 dark:text-gray-50">
-              {format(selectedDate, "MMMM yyyy")}
-            </h4>
-            <Button variant="ghost" size="icon" onClick={() => handleMonthChange("next")}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
           <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => date && setSelectedDate(date)}
+            mode="range" // Changed to range mode
+            selected={selectedDateRange}
+            onSelect={handleDateSelect}
             className="rounded-md border w-full p-0 [&_td]:w-8 [&_td]:h-8 [&_th]:pb-1 [&_div]:space-x-0 [&_div]:gap-0" // Compact styling
-            month={selectedDate}
-            onMonthChange={setSelectedDate}
+            month={calendarMonth} // Control month display
+            onMonthChange={setCalendarMonth} // Update calendarMonth when navigating
             classNames={{
               months: "flex flex-col sm:flex-row space-y-0 sm:space-x-0 sm:space-y-0",
               month: "space-y-0",
@@ -171,21 +191,24 @@ export const Sidebar = () => {
             }}
           />
           <div className="text-center text-sm mt-2 text-gray-700 dark:text-gray-300">
-            {format(startOfSelectedWeek, "MMM d, yyyy")} - {format(endOfSelectedWeek, "MMM d, yyyy")}
+            {selectedDateRange.from && selectedDateRange.to ? (
+              `${format(selectedDateRange.from, "MMM d, yyyy")} - ${format(selectedDateRange.to, "MMM d, yyyy")}`
+            ) : (
+              "Select a date range"
+            )}
           </div>
         </div>
 
         {/* Layout Filter */}
         <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
           <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout View</h4>
-          <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily" | "monthly")} value={viewMode}>
+          <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily")} value={viewMode}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select layout" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="weekly">Week</SelectItem> {/* Changed to Week */}
+              <SelectItem value="daily">Day</SelectItem>   {/* Changed to Day */}
             </SelectContent>
           </Select>
         </div>
