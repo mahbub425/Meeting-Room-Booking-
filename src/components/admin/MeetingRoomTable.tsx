@@ -5,14 +5,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, QrCode, Download, Printer, Copy } from "lucide-react";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { QRCode } from "qrcode.react"; // Corrected import to named export
+import * as QRCode from "qrcode.react"; // Corrected import to namespace import
 import { useToast } from "@/hooks/use-toast";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
 
 interface MeetingRoomTableProps {
   rooms: MeetingRoom[];
   categories: MeetingRoomCategory[]; // New prop for categories
-  onEdit: (room: MeetingRoom) => void;
+  onEdit: (room: Meeting Room) => void;
   onDelete: (id: string) => void;
   onToggleEnable: (room: MeetingRoom) => void;
 }
