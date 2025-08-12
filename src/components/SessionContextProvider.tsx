@@ -69,7 +69,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
 
           if (error) {
             console.error("Error fetching user role:", error);
-            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
               navigate("/dashboard");
             }
             toast({
@@ -80,15 +80,15 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
           }
 
           if (profile?.role === 'admin') {
-            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
-              navigate("/admin");
+            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
+              navigate("/admin/dashboard");
             }
             toast({
               title: "Welcome, Admin!",
               description: "You have successfully logged in to the admin panel.",
             });
           } else {
-            if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
               navigate("/dashboard");
             }
             toast({
@@ -99,7 +99,7 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
         }
       } else if (event === 'SIGNED_OUT') {
         localStorage.removeItem("isSuperAdmin"); // Also clear super admin flag on logout
-        if (location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset" && location.pathname !== "/admin-login") {
+        if (!["/login", "/register", "/forgot-password", "/force-password-reset", "/admin"].includes(location.pathname)) {
           navigate("/login");
           toast({
             title: "Logged Out",
@@ -124,22 +124,22 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
 
         if (error) {
           console.error("Error fetching initial user role:", error);
-          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
             navigate("/dashboard");
           }
           return;
         }
 
         if (profile?.role === 'admin') {
-          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
-            navigate("/admin");
+          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
+            navigate("/admin/dashboard");
           }
         } else {
-          if (location.pathname === "/login" || location.pathname === "/register" || location.pathname === "/forgot-password" || location.pathname === "/admin-login") {
+          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
             navigate("/dashboard");
           }
         }
-      } else if (!initialSession && location.pathname !== "/login" && location.pathname !== "/register" && location.pathname !== "/forgot-password" && location.pathname !== "/force-password-reset" && location.pathname !== "/admin-login") {
+      } else if (!initialSession && !["/login", "/register", "/forgot-password", "/force-password-reset", "/admin"].includes(location.pathname)) {
         navigate("/login");
       }
     });

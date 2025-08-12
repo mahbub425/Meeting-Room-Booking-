@@ -38,7 +38,7 @@ const AdminLoginPage = () => {
         description: "You have successfully logged in.",
       });
       // Force a full reload to ensure SessionContextProvider picks up the change
-      window.location.href = "/admin";
+      window.location.href = "/admin/dashboard";
     } else {
       toast({
         title: "Login Failed",

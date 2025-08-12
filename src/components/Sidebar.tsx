@@ -74,7 +74,7 @@ export const Sidebar = () => {
 
   if (isAdmin) {
     navItems.push(
-      { name: "Admin Dashboard", icon: Building, path: "/admin" },
+      { name: "Admin Dashboard", icon: Building, path: "/admin/dashboard" },
       { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
       { name: "Meeting Room Categories", icon: LayoutList, path: "/admin/categories" }, // New link
       { name: "User Management", icon: Users, path: "/admin/users" },

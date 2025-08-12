@@ -18,7 +18,7 @@ import OrganizationProfilePage from "./pages/admin/OrganizationProfilePage";
 import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage";
-import AdminLoginPage from "./pages/AdminLoginPage"; // New import
+import AdminLoginPage from "./pages/AdminLoginPage";
 import { SessionContextProvider } from "./components/SessionContextProvider";
 import { DashboardLayoutProvider } from "./components/DashboardLayoutContext";
 
@@ -33,11 +33,11 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/admin-login" element={<AdminLoginPage />} /> {/* New Route */}
+              <Route path="/admin" element={<AdminLoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
               <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
               <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
               <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
