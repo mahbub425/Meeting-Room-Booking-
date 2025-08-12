@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithPassword } from "@/integrations/supabase/auth";
 import { useForm } from "react-hook-form";
@@ -21,6 +21,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 const LoginPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -34,7 +35,11 @@ const LoginPage = () => {
   const handleSubmit = async (values: LoginFormValues) => {
     try {
       await signInWithPassword(values.pin, values.password);
-      // Redirection is handled by SessionContextProvider
+      toast({
+        title: "Login Successful",
+        description: "Welcome to your dashboard.",
+      });
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Login Failed",

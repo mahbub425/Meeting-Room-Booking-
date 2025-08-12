@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ type AdminLoginFormValues = z.infer<typeof adminLoginFormSchema>;
 
 const AdminLoginPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(adminLoginFormSchema),
@@ -31,7 +32,11 @@ const AdminLoginPage = () => {
   const handleSubmit = async (values: AdminLoginFormValues) => {
     try {
       await signInAdminWithEmailAndPassword(values.username, values.password);
-      // Redirection is now handled by SessionContextProvider
+      toast({
+        title: "Admin Login Successful",
+        description: "Welcome to the admin dashboard.",
+      });
+      navigate("/admin/dashboard");
     } catch (error: any) {
       toast({
         title: "Admin Login Failed",

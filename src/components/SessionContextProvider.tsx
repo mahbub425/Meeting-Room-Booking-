@@ -28,46 +28,10 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
       setUser(currentSession?.user || null);
       setLoading(false);
 
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-        if (currentSession?.user) {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          if (error) {
-            console.error("Error fetching user role:", error);
-            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-              navigate("/dashboard");
-            }
-            toast({
-              title: "Welcome!",
-              description: "You have successfully logged in.",
-            });
-            return;
-          }
-
-          if (profile?.role === 'admin') {
-            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-              navigate("/admin/dashboard");
-            }
-            toast({
-              title: "Welcome, Admin!",
-              description: "You have successfully logged in to the admin panel.",
-            });
-          } else {
-            if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-              navigate("/dashboard");
-            }
-            toast({
-              title: "Welcome!",
-              description: "You have successfully logged in.",
-            });
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
-        if (!["/login", "/register", "/forgot-password", "/force-password-reset", "/admin"].includes(location.pathname)) {
+      if (event === 'SIGNED_OUT') {
+        const publicRoutes = ["/login", "/register", "/forgot-password", "/force-password-reset", "/admin", "/"];
+        const isPublicRoute = publicRoutes.includes(location.pathname) || location.pathname.startsWith('/room/');
+        if (!isPublicRoute) {
           navigate("/login");
           toast({
             title: "Logged Out",
@@ -78,38 +42,18 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
     });
 
     // Initial session check
-    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user || null);
-      setLoading(false);
-
-      if (initialSession && initialSession.user) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', initialSession.user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching initial user role:", error);
-          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-            navigate("/dashboard");
-          }
-          return;
+      
+      if (!initialSession) {
+        const publicRoutes = ["/login", "/register", "/forgot-password", "/force-password-reset", "/admin", "/"];
+        const isPublicRoute = publicRoutes.includes(location.pathname) || location.pathname.startsWith('/room/');
+        if (!isPublicRoute) {
+          navigate("/login");
         }
-
-        if (profile?.role === 'admin') {
-          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-            navigate("/admin/dashboard");
-          }
-        } else {
-          if (["/login", "/register", "/forgot-password", "/admin"].includes(location.pathname)) {
-            navigate("/dashboard");
-          }
-        }
-      } else if (!initialSession && !["/login", "/register", "/forgot-password", "/force-password-reset", "/admin"].includes(location.pathname)) {
-        navigate("/login");
       }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
