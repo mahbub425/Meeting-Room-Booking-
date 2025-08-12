@@ -99,7 +99,7 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
     };
   }, [selectedDate, bookingStatusFilter, toast]);
 
-  const getCellStatus = (roomId: string, date: Date): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled', booking?: Booking } => {
+  const getCellStatus = (roomId: string, date: Date): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => { // Added 'approved'
     const now = new Date();
     const isDayPast = isPast(date) && !isSameDay(date, now);
 
@@ -127,7 +127,7 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
       case 'available':
         return "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 cursor-pointer";
       case 'booked':
-      case 'approved':
+      case 'approved': // Handled 'approved' status
         return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 cursor-pointer";
       case 'pending':
         return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 cursor-pointer";

@@ -26,6 +26,12 @@ export interface MeetingRoom {
   category_id: string | null; // Added category_id
 }
 
+// Define a simpler type for category profiles used in selects
+interface SimpleCategory {
+  id: string;
+  name: string;
+}
+
 const MeetingRoomManagementPage = () => {
   const { user, loading } = useSession();
   const navigate = useNavigate();
@@ -94,7 +100,7 @@ const MeetingRoomManagementPage = () => {
       });
       setCategories([]);
     } else {
-      setCategories(data || []);
+      setCategories(data as MeetingRoomCategory[] || []); // Cast data to MeetingRoomCategory[]
     }
   };
 

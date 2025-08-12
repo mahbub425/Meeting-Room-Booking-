@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isPast, isToday, getDay, addDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isPast, isToday, getDay, addDays, parseISO } from "date-fns"; // Added parseISO
 import { Booking } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,8 +28,8 @@ export const MonthlyCalendarDisplay: React.FC<MonthlyCalendarDisplayProps> = ({ 
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true);
-      const startOfMonthISO = format(startOfCurrentMonth, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
-      const endOfMonthISO = format(endOfCurrentMonth, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      const startOfMonthISO = format(startOfMonth(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+      const endOfMonthISO = format(endOfMonth(selectedDate), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
       let query = supabase
         .from('bookings')

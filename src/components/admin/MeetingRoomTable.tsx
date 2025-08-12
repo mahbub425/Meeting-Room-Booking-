@@ -5,12 +5,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, QrCode, Download, Printer, Copy } from "lucide-react";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import * as QRCodeModule from "qrcode.react"; // Changed to namespace import
+import QRCode from "qrcode.react"; // Corrected import
 import { useToast } from "@/hooks/use-toast";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
-
-// Access the QRCode component from the default export of the module
-const QRCode = QRCodeModule.default;
 
 interface MeetingRoomTableProps {
   rooms: MeetingRoom[];

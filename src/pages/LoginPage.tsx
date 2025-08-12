@@ -80,7 +80,7 @@ const LoginPage = () => {
                   <Checkbox id="remember" checked={form.watch("rememberMe")} onCheckedChange={(checked) => form.setValue("rememberMe", !!checked)} />
                   <Label htmlFor="remember">Remember me</Label>
                 </div>
-                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:underline"> {/* Changed to text-blue-600 */}
                   Forgot Password?
                 </Link>
               </div>
@@ -91,7 +91,7 @@ const LoginPage = () => {
             <div className="mt-6 text-center text-sm">
               <p>
                 Don't have an account?{" "}
-                <Link to="/register" className="font-medium text-primary hover:underline">
+                <Link to="/register" className="font-medium text-blue-600 hover:underline"> {/* Changed to text-blue-600 */}
                   Register
                 </Link>
               </p>

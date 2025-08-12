@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay, setHours, setMinutes, isPast, isFuture, isToday } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay, setHours, setMinutes, isPast, isFuture, isToday, isBefore, isAfter } from "date-fns"; // Added isBefore, isAfter
 import { MeetingRoom, Booking } from "@/types"; // Import MeetingRoom from types
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -68,7 +68,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
         query = query.lt('end_time', new Date().toISOString());
       }
 
-      const { data: bookingsData, error: bookingsError } = await query;
+      const { data: bookingsData, error: bookingsError } = await query; // Corrected variable name
 
       if (bookingsError) {
         toast({
@@ -78,7 +78,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
         });
         setBookings([]);
       } else {
-        setBookings(data || []);
+        setBookings(bookingsData || []); // Corrected variable name
       }
       setLoading(false);
     };
@@ -109,7 +109,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
     };
   }, [selectedDate, bookingStatusFilter, toast]);
 
-  const getCellStatus = (roomId: string, timeSlot: string): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled', booking?: Booking } => {
+  const getCellStatus = (roomId: string, timeSlot: string): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => { // Added 'approved'
     const slotStart = parseISO(`${format(selectedDate, "yyyy-MM-dd")}T${timeSlot}:00`);
     const slotEnd = setMinutes(slotStart, slotStart.getMinutes() + 30); // 30-minute slot
 
@@ -145,7 +145,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
       case 'available':
         return "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 cursor-pointer";
       case 'booked':
-      case 'approved':
+      case 'approved': // Handled 'approved' status
         return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 cursor-pointer";
       case 'pending':
         return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 cursor-pointer";

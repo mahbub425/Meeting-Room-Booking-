@@ -64,7 +64,7 @@ const ForgotPasswordPage = () => {
               {form.formState.isSubmitting ? "Sending..." : "Send Reset Link"}
             </Button>
             <div className="text-center text-sm">
-              <Link to="/login" className="text-blue-600 hover:underline">
+              <Link to="/login" className="text-blue-600 hover:underline"> {/* Changed to text-blue-600 */}
                 Back to Login
               </Link>
             </div>

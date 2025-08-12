@@ -25,15 +25,9 @@ const formSchema = z.object({
   category_access: z.array(z.string()).optional(), // Array of category IDs
   username: z.string().max(50, "Username must be at most 50 characters.").optional().or(z.literal("")), // New: username field
 }).superRefine((data, ctx) => {
-  if (!data.password && !data.email && !data.pin && !data.username && !initialData) { // Only for new user, if no initialData
-    if (!data.password) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Password is required for new users.",
-        path: ["password"],
-      });
-    }
-  }
+  // Password is required for new users if no initialData is provided
+  // This check is now done outside the schema definition, in the onSubmit function
+  // to correctly leverage the `initialData` prop.
   if (data.role === 'admin' && !data.username) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -106,6 +100,15 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCa
 
   const onSubmit = async (values: UserFormValues) => {
     try {
+      // Conditional validation for password for new users
+      if (!initialData && !values.password) {
+        form.setError("password", {
+          type: "manual",
+          message: "Password is required for new users.",
+        });
+        return;
+      }
+
       if (initialData) {
         // Update existing user
         // Check if PIN is changed and if user has active bookings

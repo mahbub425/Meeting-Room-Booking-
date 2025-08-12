@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Building } from "lucide-react"; // Added Users, Building icons
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -57,8 +57,8 @@ const AnalyticsDashboardPage = () => {
           return;
         }
         setIsAdmin(true);
+        fetchMeetingRooms(); // Fetch rooms first, then analytics data
         fetchAnalyticsData();
-        fetchMeetingRooms();
       } else if (!loading && !user) {
         navigate("/login"); // Redirect unauthenticated users to login
       }
@@ -70,7 +70,7 @@ const AnalyticsDashboardPage = () => {
   const fetchMeetingRooms = async () => {
     const { data, error } = await supabase
       .from('meeting_rooms')
-      .select('id, name')
+      .select('id, name, capacity, facilities, available_time_limit, image_url, is_enabled, created_at, updated_at, category_id') // Select all fields
       .order('name', { ascending: true });
 
     if (error) {
@@ -81,7 +81,20 @@ const AnalyticsDashboardPage = () => {
       });
       setMeetingRooms([]);
     } else {
-      setMeetingRooms([{ id: "all", name: "All Rooms", capacity: null, facilities: null, available_time_limit: null, image_url: null, is_enabled: true, created_at: "", updated_at: "" }, ...(data || [])]);
+      // Ensure the 'All Rooms' object conforms to MeetingRoom interface
+      const allRoomsOption: MeetingRoom = {
+        id: "all",
+        name: "All Rooms",
+        capacity: null,
+        facilities: null,
+        available_time_limit: null,
+        image_url: null,
+        is_enabled: true,
+        created_at: new Date().toISOString(), // Provide default values
+        updated_at: new Date().toISOString(), // Provide default values
+        category_id: null,
+      };
+      setMeetingRooms([allRoomsOption, ...(data as MeetingRoom[] || [])]); // Cast data to MeetingRoom[]
     }
   };
 

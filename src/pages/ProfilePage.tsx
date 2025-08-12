@@ -131,7 +131,7 @@ const ProfilePage = () => {
           });
           setCategories([]);
         } else {
-          setCategories(categoriesData || []);
+          setCategories(categoriesData as MeetingRoomCategory[] || []); // Cast data to MeetingRoomCategory[]
         }
       }
       setProfileLoading(false);
@@ -283,7 +283,7 @@ const ProfilePage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="language">Language</Label>
-                    <Select onValueChange={(value) => profileForm.setValue("language", value as "12-hour" | "24-hour")} value={profileForm.watch("language")}>
+                    <Select onValueChange={(value) => profileForm.setValue("language", value as "English" | "Bengali")} value={profileForm.watch("language")}>
                       <SelectTrigger id="language">
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>

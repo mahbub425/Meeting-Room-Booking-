@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { UserTable } from "@/components/admin/UserTable";
 import { UserForm } from "@/components/admin/UserForm";
 import { Profile } from "@/types";
+import { Input } from "@/components/ui/input"; // Added Input import
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
 
 const UserManagementPage = () => {
   const { user, loading } = useSession();

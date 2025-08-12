@@ -12,6 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
 import { Profile } from "@/types";
 
+// Define a simpler type for admin profiles used in selects
+interface SimpleProfile {
+  id: string;
+  name: string;
+}
+
 const formSchema = z.object({
   name: z.string().min(1, "Category name is required.").max(50, "Category name must be at most 50 characters."),
   manager_id: z.string().nullable().optional(),
@@ -30,7 +36,7 @@ interface MeetingRoomCategoryFormProps {
 
 export const MeetingRoomCategoryForm: React.FC<MeetingRoomCategoryFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const { toast } = useToast();
-  const [admins, setAdmins] = useState<Profile[]>([]);
+  const [admins, setAdmins] = useState<SimpleProfile[]>([]); // Use SimpleProfile type
 
   const form = useForm<MeetingRoomCategoryFormValues>({
     resolver: zodResolver(formSchema),
@@ -59,7 +65,7 @@ export const MeetingRoomCategoryForm: React.FC<MeetingRoomCategoryFormProps> = (
         });
         setAdmins([]);
       } else {
-        setAdmins(data || []);
+        setAdmins(data as SimpleProfile[] || []); // Cast data to SimpleProfile[]
       }
     };
     fetchAdmins();
