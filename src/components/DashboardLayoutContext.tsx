@@ -19,8 +19,9 @@ const DashboardLayoutContext = createContext<DashboardLayoutContextType | undefi
 export const DashboardLayoutProvider: React.FC<{ children: ReactNode; onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void }> = ({ children, onCellClick }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const today = new Date();
-  const initialStartDate = today;
-  const initialEndDate = addDays(today, 6); // Today + 6 days = 7 days total
+  // Initialize with the current calendar week (Sunday to Saturday)
+  const initialStartDate = startOfWeek(today, { weekStartsOn: 0 }); 
+  const initialEndDate = endOfWeek(today, { weekStartsOn: 0 }); 
 
   const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date }>({
     from: initialStartDate,

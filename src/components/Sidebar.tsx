@@ -176,7 +176,17 @@ export const Sidebar = () => {
         {/* Layout Filter */}
         <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
           <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout View</h4>
-          <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily")} value={viewMode}>
+          <Select onValueChange={(value) => {
+            setViewMode(value as "weekly" | "daily");
+            if (value === "weekly") {
+              const today = new Date();
+              setSelectedDateRange({
+                from: startOfWeek(today, { weekStartsOn: 0 }), // Assuming Sunday is start of week
+                to: endOfWeek(today, { weekStartsOn: 0 }), // Assuming Sunday is start of week
+              });
+              setCalendarMonth(today); // Keep calendar month in sync
+            }
+          }} value={viewMode}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select layout" />
             </SelectTrigger>
