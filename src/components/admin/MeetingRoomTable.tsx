@@ -5,14 +5,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, QrCode, Download, Printer, Copy } from "lucide-react";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import * as QRCode from "qrcode.react"; // Corrected import to namespace import
+import { QRCode } from "qrcode.react"; // Corrected import to named export
 import { useToast } from "@/hooks/use-toast";
-import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage"; // Import MeetingRoomCategory
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
 
 interface MeetingRoomTableProps {
   rooms: MeetingRoom[];
   categories: MeetingRoomCategory[]; // New prop for categories
-  onEdit: (room: Meeting Room) => void;
+  onEdit: (room: MeetingRoom) => void;
   onDelete: (id: string) => void;
   onToggleEnable: (room: MeetingRoom) => void;
 }
@@ -99,7 +99,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, categ
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead> {/* New column */}
+            <TableHead>Category</TableHead>
             <TableHead>Capacity</TableHead>
             <TableHead>Facilities</TableHead>
             <TableHead>Time Limit</TableHead>
@@ -110,7 +110,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, categ
         <TableBody>
           {rooms.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-4 text-gray-500"> {/* Updated colspan */}
+              <TableCell colSpan={7} className="text-center py-4 text-gray-500">
                 No meeting rooms found.
               </TableCell>
             </TableRow>
@@ -118,7 +118,7 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, categ
             rooms.map((room) => (
               <TableRow key={room.id}>
                 <TableCell className="font-medium">{room.name}</TableCell>
-                <TableCell>{room.category_id ? (categoryMap.get(room.category_id) || "Unknown") : "N/A"}</TableCell> {/* Display category name */}
+                <TableCell>{room.category_id ? (categoryMap.get(room.category_id) || "Unknown") : "N/A"}</TableCell>
                 <TableCell>{room.capacity || "N/A"}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{room.facilities || "N/A"}</TableCell>
                 <TableCell>{room.available_time_limit || "N/A"}</TableCell>
