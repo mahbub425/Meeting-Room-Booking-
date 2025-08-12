@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, QrCode, Download, Printer, Copy } from "lucide-react";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { QRCode } from "qrcode.react"; // Corrected import to named export
+import * as QRCode from "qrcode.react"; // Corrected import to namespace import
 import { useToast } from "@/hooks/use-toast";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
 
