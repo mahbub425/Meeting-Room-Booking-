@@ -42,7 +42,7 @@ export const MeetingRoomForm: React.FC<MeetingRoomFormProps> = ({ initialData, o
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: initialData?.name || "",
-      category_id: (initialData as any)?.category_id || "", // Cast to any to access category_id
+      category_id: initialData?.category_id || "", // Removed 'as any'
       capacity: initialData?.capacity || undefined,
       facilities: initialData?.facilities || "",
       available_time_limit: initialData?.available_time_limit || "",
