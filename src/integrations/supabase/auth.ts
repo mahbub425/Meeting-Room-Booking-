@@ -110,6 +110,8 @@ export const signInAdminWithEmailAndPassword = async (username: string, password
 };
 
 export const signOut = async () => {
+  // Clear the super admin flag from local storage on logout
+  localStorage.removeItem("isSuperAdmin");
   const { error } = await supabase.auth.signOut();
   if (error) {
     throw error;

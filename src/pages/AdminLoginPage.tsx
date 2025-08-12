@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { signInAdminWithEmailAndPassword } from "@/integrations/supabase/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,14 +27,22 @@ const AdminLoginPage = () => {
     },
   });
 
-  const handleSubmit = async (values: AdminLoginFormValues) => {
-    try {
-      await signInAdminWithEmailAndPassword(values.username, values.password);
-      // Redirection is handled by SessionContextProvider
-    } catch (error: any) {
+  const handleSubmit = (values: AdminLoginFormValues) => {
+    // This is a hardcoded login for a super admin.
+    // It bypasses the database and sets a flag in local storage.
+    // This is a security risk and should be used with caution.
+    if (values.username === "admin" && values.password === "123456") {
+      localStorage.setItem("isSuperAdmin", "true");
+      toast({
+        title: "Welcome, Super Admin!",
+        description: "You have successfully logged in.",
+      });
+      // Force a full reload to ensure SessionContextProvider picks up the change
+      window.location.href = "/admin";
+    } else {
       toast({
         title: "Login Failed",
-        description: error.message || "Invalid credentials or not an admin. Please try again.",
+        description: "Incorrect User name or password.",
         variant: "destructive",
       });
     }
