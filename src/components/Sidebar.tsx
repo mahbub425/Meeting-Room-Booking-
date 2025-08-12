@@ -20,10 +20,14 @@ export const Sidebar = () => {
   const { toast } = useToast();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
-  const { selectedDateRange, setSelectedDateRange, viewMode, setViewMode, onCellClick } = useDashboardLayout(); // Get onCellClick
+  const { selectedDateRange, setSelectedDateRange, viewMode, setViewMode, onCellClick } = useDashboardLayout();
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
   const [categories, setCategories] = useState<MeetingRoomCategory[]>([]);
-  const [calendarMonth, setCalendarMonth] = useState<Date>(selectedDateRange.from); // State to control calendar month display
+
+  // New state for the sidebar's mini-calendar selected date, initialized to today
+  const [sidebarCalendarSelectedDate, setSidebarCalendarSelectedDate] = useState<Date>(new Date());
+  // Initialize calendarMonth to today's date
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     const fetchUserRoleAndRooms = async () => {
@@ -40,14 +44,10 @@ export const Sidebar = () => {
         } else if (profile) {
           setIsAdmin(profile.role === 'admin');
         }
-
-        // Removed fetching meeting rooms as the list is no longer displayed in the sidebar
-        // Removed fetching categories as the list is no longer displayed in the sidebar
-
       } else {
         setIsAdmin(false);
-        setMeetingRooms([]); // Keep these states, but they won't be used for display here
-        setCategories([]); // Keep these states, but they won't be used for display here
+        setMeetingRooms([]);
+        setCategories([]);
       }
     };
 
@@ -55,6 +55,30 @@ export const Sidebar = () => {
       fetchUserRoleAndRooms();
     }
   }, [user, loading, toast]);
+
+  // Effect to keep sidebarCalendarSelectedDate and calendarMonth in sync
+  // with the main view's selectedDateRange and viewMode.
+  useEffect(() => {
+    const today = new Date();
+    const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 0 });
+
+    if (viewMode === "weekly") {
+      // If main view is weekly, and it's the current week, highlight today in sidebar calendar
+      if (isSameDay(selectedDateRange.from, startOfCurrentWeek)) {
+        setSidebarCalendarSelectedDate(today);
+        setCalendarMonth(today);
+      } else {
+        // If it's a different week, highlight the start of that week in sidebar calendar
+        setSidebarCalendarSelectedDate(selectedDateRange.from);
+        setCalendarMonth(selectedDateRange.from);
+      }
+    } else if (viewMode === "daily") {
+      // If main view is daily, sidebar calendar should reflect that specific day
+      setSidebarCalendarSelectedDate(selectedDateRange.from);
+      setCalendarMonth(selectedDateRange.from);
+    }
+  }, [selectedDateRange, viewMode, user, loading, toast]);
+
 
   const handleLogout = async () => {
     try {
@@ -80,18 +104,19 @@ export const Sidebar = () => {
     }
   };
 
-  // Modified handleDateSelect to handle single date selection
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Set the selected date range to a single day
+      setSidebarCalendarSelectedDate(date); // Update sidebar's selected date
+      setCalendarMonth(date); // Keep calendar month in sync
+
+      // Update main dashboard view to daily for the selected date
       setSelectedDateRange({
         from: date,
         to: date,
       });
-      setCalendarMonth(date); // Keep calendar month in sync with selected date
+      setViewMode("daily"); // Switch to daily view
 
-      // Also trigger the booking form for the selected single date
-      onCellClick(undefined, date); // Pass undefined for room and booking, only the date
+      onCellClick(undefined, date);
       toast({
         title: "Date Selected",
         description: `Booking form opened for ${format(date, 'PPP')}.`,
@@ -99,15 +124,15 @@ export const Sidebar = () => {
     } else {
       // If nothing is selected (e.g., clearing selection), reset to current day
       const today = new Date();
+      setSidebarCalendarSelectedDate(today);
+      setCalendarMonth(today);
       setSelectedDateRange({
         from: today,
         to: today,
       });
-      setCalendarMonth(today);
+      setViewMode("daily"); // Default to daily view when no date is selected
     }
   };
-
-  // Removed getCategoryColor as meeting room list is no longer displayed
 
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
@@ -131,17 +156,17 @@ export const Sidebar = () => {
         {/* Mini-Calendar */}
         <div className="mb-6">
           <Calendar
-            mode="single" // Changed to single mode
-            selected={selectedDateRange.from} // Select only the 'from' date
+            mode="single"
+            selected={sidebarCalendarSelectedDate} // Use the new state for selection
             onSelect={handleDateSelect}
-            className="rounded-md border w-full p-0 [&_td]:w-8 [&_td]:h-8 [&_th]:pb-1 [&_div]:space-x-0 [&_div]:gap-0" // Compact styling
-            month={calendarMonth} // Control month display
-            onMonthChange={setCalendarMonth} // Update calendarMonth when navigating
+            className="rounded-md border w-full p-0 [&_td]:w-8 [&_td]:h-8 [&_th]:pb-1 [&_div]:space-x-0 [&_div]:gap-0"
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
             classNames={{
               months: "flex flex-col sm:flex-row space-y-0 sm:space-x-0 sm:space-y-0",
               month: "space-y-0",
-              caption: "hidden", // Hide default caption as we have custom navigation
-              nav: "hidden", // Hide default nav buttons
+              caption: "hidden",
+              nav: "hidden",
               table: "w-full border-collapse space-y-0",
               head_row: "flex",
               head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
@@ -165,8 +190,8 @@ export const Sidebar = () => {
             }}
           />
           <div className="text-center text-sm mt-2 text-gray-700 dark:text-gray-300">
-            {selectedDateRange.from ? (
-              format(selectedDateRange.from, "MMM d, yyyy")
+            {sidebarCalendarSelectedDate ? ( // Display the sidebar's selected date
+              format(sidebarCalendarSelectedDate, "MMM d, yyyy")
             ) : (
               "Select a date"
             )}
@@ -178,12 +203,20 @@ export const Sidebar = () => {
           <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout View</h4>
           <Select onValueChange={(value) => {
             setViewMode(value as "weekly" | "daily");
+            const today = new Date();
             if (value === "weekly") {
-              const today = new Date();
               setSelectedDateRange({
-                from: startOfWeek(today, { weekStartsOn: 0 }), // Assuming Sunday is start of week
-                to: endOfWeek(today, { weekStartsOn: 0 }), // Assuming Sunday is start of week
+                from: startOfWeek(today, { weekStartsOn: 0 }),
+                to: endOfWeek(today, { weekStartsOn: 0 }),
               });
+              setSidebarCalendarSelectedDate(today); // Keep today selected in sidebar calendar
+              setCalendarMonth(today); // Keep calendar month in sync
+            } else { // If switching to daily view
+              setSelectedDateRange({
+                from: today,
+                to: today,
+              });
+              setSidebarCalendarSelectedDate(today); // Keep today selected in sidebar calendar
               setCalendarMonth(today); // Keep calendar month in sync
             }
           }} value={viewMode}>
@@ -191,24 +224,11 @@ export const Sidebar = () => {
               <SelectValue placeholder="Select layout" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">Week</SelectItem> {/* Changed to Week */}
-              <SelectItem value="daily">Day</SelectItem>   {/* Changed to Day */}
+              <SelectItem value="weekly">Week</SelectItem>
+              <SelectItem value="daily">Day</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        {/* Meeting Room List - Removed as per request */}
-        {/* <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
-          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Meeting Rooms</h4>
-          <ul className="space-y-2">
-            {meetingRooms.map((room) => (
-              <li key={room.id} className="flex items-center p-2 rounded-md text-sidebar-foreground">
-                <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: getCategoryColor(room.category_id) }}></span>
-                {room.name}
-              </li>
-            ))}
-          </ul>
-        </div> */}
 
         {/* Admin Navigation (if admin) */}
         {isAdmin && (
@@ -267,16 +287,6 @@ export const Sidebar = () => {
           </div>
         )}
       </nav>
-      {/* Logout button removed from here as per request */}
-      {/* <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
-        <button
-          onClick={handleLogout}
-          className="flex items-center w-full p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
-        >
-          <LogOut className="mr-3 h-5 w-5" />
-          Logout
-        </button>
-      </div> */}
     </aside>
   );
 };
