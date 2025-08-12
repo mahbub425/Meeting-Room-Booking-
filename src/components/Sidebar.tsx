@@ -41,43 +41,13 @@ export const Sidebar = () => {
           setIsAdmin(profile.role === 'admin');
         }
 
-        const { data: roomsData, error: roomsError } = await supabase
-          .from('meeting_rooms')
-          .select('*')
-          .eq('is_enabled', true)
-          .order('name', { ascending: true });
-
-        if (roomsError) {
-          toast({
-            title: "Error fetching meeting rooms",
-            description: roomsError.message,
-            variant: "destructive",
-          });
-          setMeetingRooms([]);
-        } else {
-          setMeetingRooms(roomsData || []);
-        }
-
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('meeting_room_categories')
-          .select('*')
-          .order('name', { ascending: true });
-
-        if (categoriesError) {
-          toast({
-            title: "Error fetching categories",
-            description: categoriesError.message,
-            variant: "destructive",
-          });
-          setCategories([]);
-        } else {
-          setCategories(categoriesData || []);
-        }
+        // Removed fetching meeting rooms as the list is no longer displayed in the sidebar
+        // Removed fetching categories as the list is no longer displayed in the sidebar
 
       } else {
         setIsAdmin(false);
-        setMeetingRooms([]);
-        setCategories([]);
+        setMeetingRooms([]); // Keep these states, but they won't be used for display here
+        setCategories([]); // Keep these states, but they won't be used for display here
       }
     };
 
@@ -122,18 +92,14 @@ export const Sidebar = () => {
       // If nothing is selected (e.g., clearing selection), reset to current week
       const today = new Date();
       setSelectedDateRange({
-        from: startOfWeek(today, { weekStartsOn: 0 }),
-        to: endOfWeek(today, { weekStartsOn: 0 }),
+        from: today,
+        to: addDays(today, 6),
       });
       setCalendarMonth(today);
     }
   };
 
-  const getCategoryColor = (categoryId: string | null) => {
-    if (!categoryId) return "#ccc"; // Default grey
-    const category = categories.find(cat => cat.id === categoryId);
-    return category?.color || "#ccc";
-  };
+  // Removed getCategoryColor as meeting room list is no longer displayed
 
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
@@ -213,8 +179,8 @@ export const Sidebar = () => {
           </Select>
         </div>
 
-        {/* Meeting Room List */}
-        <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+        {/* Meeting Room List - Removed as per request */}
+        {/* <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
           <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Meeting Rooms</h4>
           <ul className="space-y-2">
             {meetingRooms.map((room) => (
@@ -224,7 +190,7 @@ export const Sidebar = () => {
               </li>
             ))}
           </ul>
-        </div>
+        </div> */}
 
         {/* Admin Navigation (if admin) */}
         {isAdmin && (
@@ -283,7 +249,8 @@ export const Sidebar = () => {
           </div>
         )}
       </nav>
-      <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+      {/* Logout button removed from here as per request */}
+      {/* <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
         <button
           onClick={handleLogout}
           className="flex items-center w-full p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground"
@@ -291,7 +258,7 @@ export const Sidebar = () => {
           <LogOut className="mr-3 h-5 w-5" />
           Logout
         </button>
-      </div>
+      </div> */}
     </aside>
   );
 };

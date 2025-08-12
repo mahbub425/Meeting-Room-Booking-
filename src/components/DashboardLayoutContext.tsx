@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { startOfWeek, endOfWeek } from "date-fns";
+import { startOfWeek, endOfWeek, addDays } from "date-fns";
 
 interface DashboardLayoutContextType {
   isSidebarOpen: boolean;
@@ -17,12 +17,12 @@ const DashboardLayoutContext = createContext<DashboardLayoutContextType | undefi
 export const DashboardLayoutProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const today = new Date();
-  const initialWeekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday as start of week
-  const initialWeekEnd = endOfWeek(today, { weekStartsOn: 0 }); // Saturday as end of week
+  const initialStartDate = today;
+  const initialEndDate = addDays(today, 6); // Today + 6 days = 7 days total
 
   const [selectedDateRange, setSelectedDateRange] = useState<{ from: Date; to: Date }>({
-    from: initialWeekStart,
-    to: initialWeekEnd,
+    from: initialStartDate,
+    to: initialEndDate,
   });
   const [viewMode, setViewMode] = useState<"weekly" | "daily">("weekly"); // Default to weekly
   const [bookingStatusFilter, setBookingStatusFilter] = useState<"all" | "upcoming" | "past">("all");
