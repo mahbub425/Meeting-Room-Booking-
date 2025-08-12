@@ -158,10 +158,10 @@ const MeetingRoomCategoryManagementPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <TopBar />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <TopBar />
+      <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">Meeting Room Categories</h1>
@@ -175,24 +175,24 @@ const MeetingRoomCategoryManagementPage = () => {
             onDelete={handleDeleteCategory}
           />
         </main>
-        <MadeWithDyad />
-
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{editingCategory ? "Edit Meeting Room Category" : "Add New Meeting Room Category"}</DialogTitle>
-              <DialogDescription>
-                {editingCategory ? "Modify the details of the meeting room category." : "Fill in the details for the new meeting room category."}
-              </DialogDescription>
-            </DialogHeader>
-            <MeetingRoomCategoryForm
-              initialData={editingCategory}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
+      <MadeWithDyad />
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? "Edit Meeting Room Category" : "Add New Meeting Room Category"}</DialogTitle>
+            <DialogDescription>
+              {editingCategory ? "Modify the details of the meeting room category." : "Fill in the details for the new meeting room category."}
+            </DialogDescription>
+          </DialogHeader>
+          <MeetingRoomCategoryForm
+            initialData={editingCategory}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

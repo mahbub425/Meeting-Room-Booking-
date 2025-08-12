@@ -185,10 +185,10 @@ const MeetingRoomManagementPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <TopBar />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <TopBar />
+      <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">Meeting Room Management</h1>
@@ -204,24 +204,24 @@ const MeetingRoomManagementPage = () => {
             onToggleEnable={handleToggleEnable}
           />
         </main>
-        <MadeWithDyad />
-
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{editingRoom ? "Edit Meeting Room" : "Add New Meeting Room"}</DialogTitle>
-              <DialogDescription>
-                {editingRoom ? "Modify the details of the meeting room." : "Fill in the details for the new meeting room."}
-              </DialogDescription>
-            </DialogHeader>
-            <MeetingRoomForm
-              initialData={editingRoom}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
+      <MadeWithDyad />
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{editingRoom ? "Edit Meeting Room" : "Add New Meeting Room"}</DialogTitle>
+            <DialogDescription>
+              {editingRoom ? "Modify the details of the meeting room." : "Fill in the details for the new meeting room."}
+            </DialogDescription>
+          </DialogHeader>
+          <MeetingRoomForm
+            initialData={editingRoom}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

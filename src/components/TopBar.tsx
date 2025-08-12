@@ -90,7 +90,7 @@ export const TopBar = () => {
             Today
           </Button>
           <span className="text-gray-700 dark:text-gray-300 font-medium">
-            {format(selectedDate, "MMMM yyyy")}
+            {format(selectedDate, "PPP")} {/* Changed to display full date */}
           </span>
         </div>
       </div>

@@ -206,10 +206,10 @@ const UserManagementPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <TopBar />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <TopBar />
+      <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
+        <Sidebar />
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">User Management</h1>
@@ -266,24 +266,8 @@ const UserManagementPage = () => {
             </Button>
           </div>
         </main>
-        <MadeWithDyad />
-
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingUser ? "Edit User" : "Add New User"}</DialogTitle>
-              <DialogDescription>
-                {editingUser ? "Modify the user's details." : "Fill in the details for the new user."}
-              </DialogDescription>
-            </DialogHeader>
-            <UserForm
-              initialData={editingUser}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
+      <MadeWithDyad />
     </div>
   );
 };

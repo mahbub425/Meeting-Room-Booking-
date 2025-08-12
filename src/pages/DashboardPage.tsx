@@ -26,10 +26,10 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
-      <div className="flex flex-col flex-1">
-        <TopBar />
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950">
+      <TopBar />
+      <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
+        <Sidebar />
         <main className="flex-1 p-6 relative">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">Dashboard Overview</h1>
@@ -39,23 +39,23 @@ const DashboardPage = () => {
           </div>
           <CalendarView onCellClick={handleOpenBookingForm} /> {/* Pass handler to CalendarView */}
         </main>
-        <MadeWithDyad />
-
-        <Dialog open={isBookingFormOpen} onOpenChange={setIsBookingFormOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Book New Meeting Room</DialogTitle>
-              <DialogDescription>Fill in the details to book a meeting room.</DialogDescription>
-            </DialogHeader>
-            <BookingForm
-              preselectedRoomId={preselectedRoomId}
-              preselectedDate={preselectedDate}
-              onSuccess={handleBookingFormSuccess}
-              onCancel={() => setIsBookingFormOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
+      <MadeWithDyad />
+
+      <Dialog open={isBookingFormOpen} onOpenChange={setIsBookingFormOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book New Meeting Room</DialogTitle>
+            <DialogDescription>Fill in the details to book a meeting room.</DialogDescription>
+          </DialogHeader>
+          <BookingForm
+            preselectedRoomId={preselectedRoomId}
+            preselectedDate={preselectedDate}
+            onSuccess={handleBookingFormSuccess}
+            onCancel={() => setIsBookingFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
