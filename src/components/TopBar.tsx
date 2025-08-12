@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2, Users } from "lucide-react"; // Added Users icon
+import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "@/integrations/supabase/auth";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
@@ -101,8 +101,9 @@ export const TopBar = () => {
         <span className="text-gray-700 dark:text-gray-300 font-medium">
           {format(selectedDate, "EEEE, MMMM dd, yyyy")}
         </span>
-        <Button variant="ghost" size="icon" onClick={handleShare}>
-          <Share2 className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        <Button variant="ghost" onClick={handleShare}> {/* Removed size="icon" and added text */}
+          <Share2 className="mr-2 h-5 w-5 text-gray-700 dark:text-gray-300" />
+          Share
         </Button>
         <span className="text-lg font-semibold text-gray-900 dark:text-gray-50 hidden md:block">OnnoRokom Group</span>
         {/* Report Icon - Only for Admins */}
@@ -133,7 +134,7 @@ export const TopBar = () => {
                   <Link to="/admin/organization-profile">Edit Organization Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/admin/users">User Management</Link> {/* New link */}
+                  <Link to="/admin/users">User Management</Link>
                 </DropdownMenuItem>
               </>
             )}
