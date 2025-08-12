@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, QrCode, Download, Printer, Copy } from "lucide-react";
 import { MeetingRoom } from "@/pages/admin/MeetingRoomManagementPage";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { QRCodeSVG } from "qrcode.react"; // Changed to named import QRCodeSVG
+import { QRCodeSVG } from "qrcode.react";
 import { useToast } from "@/hooks/use-toast";
 import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
 
@@ -162,10 +162,10 @@ export const MeetingRoomTable: React.FC<MeetingRoomTableProps> = ({ rooms, categ
             <DialogDescription>
               Scan this QR code to view room details and book.
             </DialogDescription>
-          </DialogDescription>
+          </DialogHeader>
           <div className="flex justify-center p-4">
             {selectedRoom && (
-              <QRCodeSVG // Changed to QRCodeSVG
+              <QRCodeSVG
                 id={`qrcode-${selectedRoom.id}`}
                 value={getRoomUrl(selectedRoom.id)}
                 size={256}
