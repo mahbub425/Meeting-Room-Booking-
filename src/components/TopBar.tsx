@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, Share2, LogOut, User, MoreVertical, Bell, HelpCircle, BarChart2, Users } from "lucide-react";
+import { Menu, Share2, LogOut, User, Bell, HelpCircle, BarChart2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "@/integrations/supabase/auth";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
@@ -69,6 +69,7 @@ export const TopBar = () => {
 
   return (
     <header className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 dark:border-gray-700">
+      {/* Left Section: Sidebar Trigger, Logo, Today Button + Month/Year */}
       <div className="flex items-center space-x-4">
         <Sheet open={isSidebarOpen} onOpenChange={toggleSidebar}>
           <SheetTrigger asChild>
@@ -80,32 +81,27 @@ export const TopBar = () => {
             <Sidebar />
           </SheetContent>
         </Sheet>
-        <span className="text-lg font-semibold text-gray-900 dark:text-gray-50">OnnoRokom Meeting Booking System</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="ml-4">
-              <MoreVertical className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem asChild>
-              <Link to="/dashboard">Calendar</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Main Logo/Title */}
+        <span className="text-lg font-semibold text-gray-900 dark:text-gray-50">OnnoRokom Group</span>
+
+        {/* Today Button and Month/Year */}
+        <div className="flex items-center space-x-2 ml-4">
+          <Button variant="outline" className="text-gray-700 dark:text-gray-300" onClick={handleTodayClick}>
+            Today
+          </Button>
+          <span className="text-gray-700 dark:text-gray-300 font-medium">
+            {format(selectedDate, "MMMM yyyy")}
+          </span>
+        </div>
       </div>
+
+      {/* Right Section: Share, Admin Reports, Notifications, Help, User Dropdown */}
       <div className="flex items-center space-x-4">
-        <Button variant="outline" className="text-gray-700 dark:text-gray-300" onClick={handleTodayClick}>
-          Today
-        </Button>
-        <span className="text-gray-700 dark:text-gray-300 font-medium">
-          {format(selectedDate, "EEEE, MMMM dd, yyyy")}
-        </span>
-        <Button variant="ghost" onClick={handleShare}> {/* Removed size="icon" and added text */}
+        {/* Share Button */}
+        <Button variant="ghost" onClick={handleShare}>
           <Share2 className="mr-2 h-5 w-5 text-gray-700 dark:text-gray-300" />
           Share
         </Button>
-        <span className="text-lg font-semibold text-gray-900 dark:text-gray-50 hidden md:block">OnnoRokom Group</span>
         {/* Report Icon - Only for Admins */}
         {isAdmin && (
           <Button variant="ghost" size="icon" onClick={() => setIsReportsModalOpen(true)}>
