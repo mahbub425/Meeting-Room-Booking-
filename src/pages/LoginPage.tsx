@@ -13,7 +13,7 @@ import * as z from "zod";
 
 const loginFormSchema = z.object({
   pin: z.string().regex(/^\d+$/, "PIN must contain only digits and cannot be empty."),
-  password: z.string().min(1, "Password is required."), // No change needed here as it's already min 1
+  password: z.string().min(1, "Password is required."),
   rememberMe: z.boolean().default(false),
 });
 
@@ -51,46 +51,59 @@ const LoginPage = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
-          <CardDescription className="text-center">
-            Enter your PIN and password to access the system.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pin">PIN</Label>
-              <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} />
-              {form.formState.errors.pin && <p className="text-red-500 text-sm">{form.formState.errors.pin.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Your password" {...form.register("password")} />
-              {form.formState.errors.password && <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>}
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" checked={form.watch("rememberMe")} onCheckedChange={(checked) => form.setValue("rememberMe", !!checked)} />
-                <Label htmlFor="remember">Remember Password</Label>
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          {/* Placeholder for Logo */}
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">OnnoRokom Group</h1>
+        </div>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+            <CardDescription>
+              Please enter your credentials to login
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="pin">PIN</Label>
+                <Input id="pin" type="text" placeholder="Your PIN" {...form.register("pin")} />
+                {form.formState.errors.pin && <p className="text-red-500 text-sm">{form.formState.errors.pin.message}</p>}
               </div>
-              <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                Forgot Password?
-              </Link>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" placeholder="Your password" {...form.register("password")} />
+                {form.formState.errors.password && <p className="text-red-500 text-sm">{form.formState.errors.password.message}</p>}
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="remember" checked={form.watch("rememberMe")} onCheckedChange={(checked) => form.setValue("rememberMe", !!checked)} />
+                  <Label htmlFor="remember">Remember me</Label>
+                </div>
+                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Logging in..." : "Login"}
+              </Button>
+            </form>
+            <div className="mt-6 text-center text-sm">
+              <p>
+                Don't have an account?{" "}
+                <Link to="/register" className="font-medium text-primary hover:underline">
+                  Register
+                </Link>
+              </p>
+              <p className="mt-2">
+                <Link to="/admin" className="font-medium text-primary hover:underline">
+                  Login as Admin
+                </Link>
+              </p>
             </div>
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Logging in..." : "Login"}
-            </Button>
-            <div className="text-center text-sm">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-blue-600 hover:underline">
-                Register
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
