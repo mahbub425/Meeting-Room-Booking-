@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isPast, isToday, parseISO } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isPast, isToday, parseISO, isWithinInterval, isBefore, isAfter } from "date-fns";
 import { MeetingRoom, Booking } from "@/types"; // Import MeetingRoom from types
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Plus } from "lucide-react"; // Import Plus icon
 
 interface WeeklyCalendarDisplayProps {
   onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
@@ -99,7 +100,7 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
     };
   }, [selectedDate, bookingStatusFilter, toast]);
 
-  const getCellStatus = (roomId: string, date: Date): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => { // Added 'approved'
+  const getCellStatus = (roomId: string, date: Date): { status: 'available' | 'booked' | 'past' | 'pending' | 'rejected' | 'cancelled' | 'approved', booking?: Booking } => {
     const now = new Date();
     const isDayPast = isPast(date) && !isSameDay(date, now);
 
@@ -107,7 +108,11 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
       const bookingStart = parseISO(booking.start_time);
       const bookingEnd = parseISO(booking.end_time);
 
-      if (booking.room_id === roomId && isSameDay(bookingStart, date)) {
+      // Check if the booking spans across the entire day or overlaps significantly
+      const isBookingOnThisDay = isSameDay(bookingStart, date) || isSameDay(bookingEnd, date) ||
+                                (isBefore(date, bookingEnd) && isAfter(date, bookingStart));
+
+      if (booking.room_id === roomId && isBookingOnThisDay) {
         if (isDayPast || isPast(bookingEnd)) {
           return { status: 'past', booking };
         }
@@ -125,9 +130,9 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
   const getCellClasses = (status: ReturnType<typeof getCellStatus>['status']) => {
     switch (status) {
       case 'available':
-        return "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 cursor-pointer";
+        return "bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 cursor-pointer"; // Light blue for available
       case 'booked':
-      case 'approved': // Handled 'approved' status
+      case 'approved':
         return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 cursor-pointer";
       case 'pending':
         return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 cursor-pointer";
@@ -168,14 +173,14 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-200px)] w-full">
+    <ScrollArea className="h-[calc(100vh-150px)] w-full"> {/* Adjusted height */}
       <Table className="min-w-full table-fixed">
         <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
           <TableRow>
             <TableHead className="w-[120px] sticky left-0 bg-white dark:bg-gray-800 z-20">Room</TableHead>
             {daysOfWeek.map((day) => (
               <TableHead key={day.toISOString()} className={`text-center w-[150px] min-w-[150px] ${isSameDay(day, new Date()) ? "text-blue-600 dark:text-blue-400 font-bold" : ""}`}>
-                {format(day, "EEE, MMM dd")}
+                {format(day, "EEE")} <br /> {format(day, "dd")}
               </TableHead>
             ))}
           </TableRow>
@@ -189,17 +194,25 @@ export const WeeklyCalendarDisplay: React.FC<WeeklyCalendarDisplayProps> = ({ on
                 return (
                   <TableCell
                     key={`${room.id}-${day.toISOString()}`}
-                    className={`border p-2 text-xs h-24 ${getCellClasses(status)}`}
+                    className={`border p-2 text-xs h-24 flex items-center justify-center ${getCellClasses(status)}`}
                     onClick={() => handleCellClick(room.id, day, status, booking)}
                   >
-                    {booking && (
-                      <div className="truncate">
-                        {booking.meeting_title}
-                        {status === 'past' && " (Past)"}
-                        {status === 'pending' && " (Pending)"}
-                        {status === 'rejected' && " (Rejected)"}
-                        {status === 'cancelled' && " (Cancelled)"}
-                      </div>
+                    {status === 'available' ? (
+                      <Plus className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+                    ) : (
+                      booking && (
+                        <div className="truncate text-center">
+                          {booking.meeting_title}
+                          <br />
+                          <span className="text-[0.65rem]">
+                            {format(parseISO(booking.start_time), "HH:mm")} - {format(parseISO(booking.end_time), "HH:mm")}
+                          </span>
+                          {status === 'past' && " (Past)"}
+                          {status === 'pending' && " (Pending)"}
+                          {status === 'rejected' && " (Rejected)"}
+                          {status === 'cancelled' && " (Cancelled)"}
+                        </div>
+                      )
                     )}
                   </TableCell>
                 );

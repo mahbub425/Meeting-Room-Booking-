@@ -31,12 +31,7 @@ const DashboardPage = () => {
       <div className="flex flex-1"> {/* This div now contains Sidebar and main content */}
         <Sidebar />
         <main className="flex-1 p-6 relative">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">Dashboard Overview</h1>
-            <Button onClick={() => handleOpenBookingForm()}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Booking
-            </Button>
-          </div>
+          {/* Removed the h1 and Button for 'Add New Booking' as per screenshot */}
           <CalendarView onCellClick={handleOpenBookingForm} /> {/* Pass handler to CalendarView */}
         </main>
       </div>

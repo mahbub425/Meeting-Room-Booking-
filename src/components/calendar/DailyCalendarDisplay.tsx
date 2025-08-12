@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay, setHours, setMinutes, isPast, isFuture, isToday, isBefore, isAfter } from "date-fns"; // Added isBefore, isAfter
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay, setHours, setMinutes, isPast, isToday, isBefore, isAfter } from "date-fns"; // Added isBefore, isAfter
 import { MeetingRoom, Booking } from "@/types"; // Import MeetingRoom from types
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Plus } from "lucide-react"; // Import Plus icon
 
 interface DailyCalendarDisplayProps {
   onCellClick: (roomId?: string, date?: Date, booking?: Booking) => void;
@@ -143,7 +144,7 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
   const getCellClasses = (status: ReturnType<typeof getCellStatus>['status']) => {
     switch (status) {
       case 'available':
-        return "bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 cursor-pointer";
+        return "bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 cursor-pointer"; // Light blue for available
       case 'booked':
       case 'approved': // Handled 'approved' status
         return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 cursor-pointer";
@@ -206,17 +207,21 @@ export const DailyCalendarDisplay: React.FC<DailyCalendarDisplayProps> = ({ onCe
                 return (
                   <TableCell
                     key={`${room.id}-${timeSlot}`}
-                    className={`border p-2 text-xs h-12 ${getCellClasses(status)}`}
+                    className={`border p-2 text-xs h-12 flex items-center justify-center ${getCellClasses(status)}`}
                     onClick={() => handleCellClick(room.id, timeSlot, status, booking)}
                   >
-                    {booking && (
-                      <div className="truncate">
-                        {booking.meeting_title}
-                        {status === 'past' && " (Past)"}
-                        {status === 'pending' && " (Pending)"}
-                        {status === 'rejected' && " (Rejected)"}
-                        {status === 'cancelled' && " (Cancelled)"}
-                      </div>
+                    {status === 'available' ? (
+                      <Plus className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                    ) : (
+                      booking && (
+                        <div className="truncate text-center">
+                          {booking.meeting_title}
+                          {status === 'past' && " (Past)"}
+                          {status === 'pending' && " (Pending)"}
+                          {status === 'rejected' && " (Rejected)"}
+                          {status === 'cancelled' && " (Cancelled)"}
+                        </div>
+                      )
                     )}
                   </TableCell>
                 );

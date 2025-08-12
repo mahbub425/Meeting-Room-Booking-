@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList } from "lucide-react"; // Added LayoutList icon
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, Plus } from "lucide-react"; // Added Plus icon
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDashboardLayout } from "@/components/DashboardLayoutContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format, addMonths, subMonths } from "date-fns";
+import { format, addMonths, subMonths, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { MeetingRoom } from "@/types";
+import { MeetingRoomCategory } from "@/pages/admin/MeetingRoomCategoryManagementPage";
 
 export const Sidebar = () => {
   const { user, loading } = useSession();
@@ -18,31 +20,69 @@ export const Sidebar = () => {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const { selectedDate, setSelectedDate, viewMode, setViewMode, bookingStatusFilter, setBookingStatusFilter } = useDashboardLayout();
+  const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
+  const [categories, setCategories] = useState<MeetingRoomCategory[]>([]);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
+    const fetchUserRoleAndRooms = async () => {
       if (user) {
-        const { data: profile, error } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
 
-        if (error) {
-          console.error("Error fetching user role:", error);
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
           setIsAdmin(false);
         } else if (profile) {
           setIsAdmin(profile.role === 'admin');
         }
+
+        const { data: roomsData, error: roomsError } = await supabase
+          .from('meeting_rooms')
+          .select('*')
+          .eq('is_enabled', true)
+          .order('name', { ascending: true });
+
+        if (roomsError) {
+          toast({
+            title: "Error fetching meeting rooms",
+            description: roomsError.message,
+            variant: "destructive",
+          });
+          setMeetingRooms([]);
+        } else {
+          setMeetingRooms(roomsData || []);
+        }
+
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('meeting_room_categories')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (categoriesError) {
+          toast({
+            title: "Error fetching categories",
+            description: categoriesError.message,
+            variant: "destructive",
+          });
+          setCategories([]);
+        } else {
+          setCategories(categoriesData || []);
+        }
+
       } else {
         setIsAdmin(false);
+        setMeetingRooms([]);
+        setCategories([]);
       }
     };
 
     if (!loading) {
-      fetchUserRole();
+      fetchUserRoleAndRooms();
     }
-  }, [user, loading]);
+  }, [user, loading, toast]);
 
   const handleLogout = async () => {
     try {
@@ -68,18 +108,14 @@ export const Sidebar = () => {
     }
   };
 
-  const navItems = [
-    { name: "Calendar", icon: CalendarIcon, path: "/dashboard" },
-  ];
+  const getCategoryColor = (categoryId: string | null) => {
+    if (!categoryId) return "#ccc"; // Default grey
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.color || "#ccc";
+  };
 
-  if (isAdmin) {
-    navItems.push(
-      { name: "Admin Dashboard", icon: Building, path: "/admin/dashboard" },
-      { name: "Meeting Room Management", icon: Building, path: "/admin/rooms" },
-      { name: "Meeting Room Categories", icon: LayoutList, path: "/admin/categories" }, // New link
-      { name: "User Management", icon: Users, path: "/admin/users" },
-    );
-  }
+  const startOfSelectedWeek = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday as start of week
+  const endOfSelectedWeek = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday as end of week
 
   return (
     <aside className="w-64 bg-sidebar dark:bg-sidebar-background text-sidebar-foreground dark:text-sidebar-foreground border-r border-sidebar-border dark:border-sidebar-border p-4 flex flex-col">
@@ -87,25 +123,8 @@ export const Sidebar = () => {
         <h2 className="text-2xl font-bold text-sidebar-primary dark:text-sidebar-primary-foreground">OnnoRokom Meeting Booking System</h2>
       </div>
       <nav className="flex-1">
-        <ul className="space-y-2">
-          {navItems.map((item) => (
-            <li key={item.name}>
-              <Link
-                to={item.path}
-                className={cn(
-                  "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
-                  location.pathname.startsWith(item.path) && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
-                )}
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
         {/* Mini Calendar in Sidebar */}
-        <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+        <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <Button variant="ghost" size="icon" onClick={() => handleMonthChange("prev")}>
               <ChevronLeft className="h-4 w-4" />
@@ -151,11 +170,14 @@ export const Sidebar = () => {
               day_hidden: "invisible",
             }}
           />
+          <div className="text-center text-sm mt-2 text-gray-700 dark:text-gray-300">
+            {format(startOfSelectedWeek, "MMM d, yyyy")} - {format(endOfSelectedWeek, "MMM d, yyyy")}
+          </div>
         </div>
 
         {/* Layout Filter */}
         <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
-          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout</h4>
+          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Layout View</h4>
           <Select onValueChange={(value) => setViewMode(value as "weekly" | "daily" | "monthly")} value={viewMode}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select layout" />
@@ -168,34 +190,75 @@ export const Sidebar = () => {
           </Select>
         </div>
 
-        {/* Booking Status Filter */}
+        {/* Meeting Room List */}
         <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
-          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Booking Status</h4>
-          <Select onValueChange={setBookingStatusFilter} value={bookingStatusFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Bookings</SelectItem>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
-              <SelectItem value="past">Past</SelectItem>
-            </SelectContent>
-          </Select>
+          <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Meeting Rooms</h4>
+          <ul className="space-y-2">
+            {meetingRooms.map((room) => (
+              <li key={room.id} className="flex items-center p-2 rounded-md text-sidebar-foreground">
+                <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: getCategoryColor(room.category_id) }}></span>
+                {room.name}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Profile Link - Moved to the end */}
-        <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
-          <Link
-            to="/profile"
-            className={cn(
-              "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
-              location.pathname.startsWith("/profile") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
-            )}
-          >
-            <User className="mr-3 h-5 w-5" />
-            Profile
-          </Link>
-        </div>
+        {/* Admin Navigation (if admin) */}
+        {isAdmin && (
+          <div className="mt-6 pt-4 border-t border-sidebar-border dark:border-sidebar-border">
+            <h4 className="text-md font-semibold mb-2 text-gray-900 dark:text-gray-50">Admin Panel</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  to="/admin/dashboard"
+                  className={cn(
+                    "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+                    location.pathname.startsWith("/admin/dashboard") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Building className="mr-3 h-5 w-5" />
+                  Admin Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/rooms"
+                  className={cn(
+                    "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+                    location.pathname.startsWith("/admin/rooms") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Building className="mr-3 h-5 w-5" />
+                  Meeting Room Management
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/categories"
+                  className={cn(
+                    "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+                    location.pathname.startsWith("/admin/categories") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <LayoutList className="mr-3 h-5 w-5" />
+                  Meeting Room Categories
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/users"
+                  className={cn(
+                    "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+                    location.pathname.startsWith("/admin/users") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Users className="mr-3 h-5 w-5" />
+                  User Management
+                </Link>
+              </li>
+            </ul>
+          </div>
+        )}
       </nav>
       <div className="mt-auto pt-4 border-t border-sidebar-border dark:border-sidebar-border">
         <button
