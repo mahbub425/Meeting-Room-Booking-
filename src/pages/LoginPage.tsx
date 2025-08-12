@@ -95,11 +95,6 @@ const LoginPage = () => {
                   Register
                 </Link>
               </p>
-              <p className="mt-2">
-                <Link to="/admin" className="font-medium text-primary hover:underline">
-                  Login as Admin
-                </Link>
-              </p>
             </div>
           </CardContent>
         </Card>
