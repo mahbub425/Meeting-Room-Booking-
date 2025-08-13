@@ -20,12 +20,12 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onToggleEna
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
-          <TableHead>Username</TableHead> {/* New column */}
+          <TableHead>PIN</TableHead> {/* Added PIN column */}
           <TableHead>Email</TableHead>
-          <TableHead>PIN</TableHead>
-          <TableHead>Role</TableHead>
+          <TableHead>Phone Number</TableHead> {/* Added Phone Number column */}
           <TableHead>Department</TableHead>
           <TableHead>Designation</TableHead>
+          <TableHead>Role</TableHead> {/* Added Role column */}
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -41,12 +41,12 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onEdit, onToggleEna
           users.map((user) => (
             <TableRow key={user.id}>
               <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell>{user.username || "N/A"}</TableCell> {/* Display username */}
+              <TableCell>{user.pin}</TableCell> {/* Display PIN */}
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.pin}</TableCell>
-              <TableCell>{user.role}</TableCell>
+              <TableCell>{user.phone || "N/A"}</TableCell> {/* Display Phone Number */}
               <TableCell>{user.department || "N/A"}</TableCell>
               <TableCell>{user.designation || "N/A"}</TableCell>
+              <TableCell>{user.role}</TableCell> {/* Display Role */}
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.is_enabled ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                   {user.is_enabled ? "Active" : "Disabled"}

@@ -15,6 +15,15 @@ import { Profile } from "@/types";
 import { Input } from "@/components/ui/input"; // Added Input import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
 
+const departments = [
+  "Human Resource Management", "Software Development", "Business Development",
+  "Software Quality Assurance", "Operations & Management", "UI & Graphics Design",
+  "TechCare", "Requirement Analysis & UX Design", "Top Management",
+  "DevOps & Network", "Finance & Accounts", "Internal Audit",
+  "Graphics & Creative", "Organization Development", "IT & Hardware",
+  "Legal & Compliance", "Operations (Asset Management)",
+];
+
 const UserManagementPage = () => {
   const { user, loading } = useSession();
   const navigate = useNavigate();
@@ -26,9 +35,11 @@ const UserManagementPage = () => {
   const [isFetching, setIsFetching] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterDepartment, setFilterDepartment] = useState<string>("all"); // New state for department filter
+  const [filterDesignation, setFilterDesignation] = useState<string>("all"); // New state for designation filter
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const usersPerPage = 20;
+  const usersPerPage = 10; // Default to 10 users per page as per FRS
 
   useEffect(() => {
     const fetchUserRoleAndUsers = async () => {
@@ -50,7 +61,7 @@ const UserManagementPage = () => {
     };
 
     fetchUserRoleAndUsers();
-  }, [user, loading, navigate, searchTerm, filterRole, currentPage]);
+  }, [user, loading, navigate, searchTerm, filterRole, filterDepartment, filterDesignation, currentPage]); // Added new filters to dependency array
 
   const fetchUsers = async () => {
     setIsFetching(true);
@@ -59,10 +70,16 @@ const UserManagementPage = () => {
       .select('*', { count: 'exact' });
 
     if (searchTerm) {
-      query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,pin.ilike.%${searchTerm}%,department.ilike.%${searchTerm}%,designation.ilike.%${searchTerm}%`);
     }
     if (filterRole !== "all") {
       query = query.eq('role', filterRole);
+    }
+    if (filterDepartment !== "all") {
+      query = query.eq('department', filterDepartment);
+    }
+    if (filterDesignation !== "all") {
+      query = query.eq('designation', filterDesignation);
     }
 
     const { data, error, count } = await query
@@ -218,12 +235,12 @@ const UserManagementPage = () => {
             </Button>
           </div>
 
-          <div className="flex space-x-4 mb-4">
+          <div className="flex flex-wrap gap-4 mb-4"> {/* Use flex-wrap for responsiveness */}
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by name, email, or PIN..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="max-w-sm flex-1 min-w-[200px]" // Added flex-1 and min-width
             />
             <Select onValueChange={setFilterRole} value={filterRole}>
               <SelectTrigger className="w-[180px]">
@@ -235,6 +252,23 @@ const UserManagementPage = () => {
                 <SelectItem value="user">General User</SelectItem>
               </SelectContent>
             </Select>
+            <Select onValueChange={setFilterDepartment} value={filterDepartment}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Filter by Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Filter by Designation..."
+              value={filterDesignation === "all" ? "" : filterDesignation} // Clear input if "all" is selected
+              onChange={(e) => setFilterDesignation(e.target.value || "all")} // Set to "all" if empty
+              className="max-w-sm flex-1 min-w-[200px]" // Added flex-1 and min-width
+            />
             <Button onClick={() => fetchUsers()}>Apply Filters</Button>
           </div>
 
@@ -268,6 +302,22 @@ const UserManagementPage = () => {
         </main>
       </div>
       <MadeWithDyad />
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingUser ? "Edit User" : "Add New User"}</DialogTitle>
+            <DialogDescription>
+              {editingUser ? "Modify the user's details." : "Fill in the details for the new user."}
+            </DialogDescription>
+          </DialogHeader>
+          <UserForm
+            initialData={editingUser}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
