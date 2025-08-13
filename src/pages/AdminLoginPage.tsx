@@ -36,7 +36,7 @@ const AdminLoginPage = () => {
         title: "Admin Login Successful",
         description: "Welcome to the admin dashboard.",
       });
-      navigate("/admin/dashboard");
+      navigate("/admin/analytics"); {/* Changed redirect to /admin/analytics */}
     } catch (error: any) {
       toast({
         title: "Admin Login Failed",
