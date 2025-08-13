@@ -11,7 +11,7 @@ import RoomDetailsPage from "./pages/RoomDetailsPage";
 import ForcePasswordResetPage from "./pages/ForcePasswordResetPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminOverviewPage from "./pages/admin/AdminOverviewPage"; // Renamed import
 import MeetingRoomManagementPage from "./pages/admin/MeetingRoomManagementPage";
 import ProfilePage from "./pages/ProfilePage";
 import OrganizationProfilePage from "./pages/admin/OrganizationProfilePage";
@@ -37,11 +37,11 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/overview" element={<AdminOverviewPage />} /> {/* Updated route */}
+            <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} /> {/* New route for Analytics */}
             <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
             <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
             <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
-            <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
             <Route path="/admin/users" element={<UserManagementPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/room/:id" element={<RoomDetailsPage />} />
