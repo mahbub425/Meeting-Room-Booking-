@@ -51,6 +51,7 @@ export const signInWithPassword = async (pin: string, password: string) => {
   const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_pin', { p_pin: pin });
 
   if (rpcError) {
+    console.error("RPC Error fetching email by PIN:", rpcError);
     throw new AuthError("Invalid PIN or Password.", 400); // Generic error for security
   }
 
@@ -76,13 +77,15 @@ export const signInAdminWithEmailAndPassword = async (username: string, password
   const { data: emailData, error: rpcError } = await supabase.rpc('get_email_by_username', { p_username: username });
 
   if (rpcError) {
-    throw new AuthError("Invalid Username or Password.", 400); // Generic error for security
+    console.error("RPC Error fetching email by username:", rpcError);
+    throw new AuthError("Failed to retrieve user email. Please try again.", 500); // More specific error for RPC failure
   }
 
   const email = emailData as string | null;
+  console.log("Email retrieved for admin username:", email);
 
   if (!email) {
-    throw new AuthError("Invalid Username or Password.", 400);
+    throw new AuthError("Invalid Username. Please check your username and try again.", 400); // More specific error
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -91,7 +94,8 @@ export const signInAdminWithEmailAndPassword = async (username: string, password
   });
 
   if (error) {
-    throw error;
+    console.error("Supabase Auth Sign-in Error:", error);
+    throw error; // Let the original Supabase Auth error propagate
   }
 
   // After successful login, verify if the user is an admin
@@ -101,7 +105,14 @@ export const signInAdminWithEmailAndPassword = async (username: string, password
     .eq('id', data.user?.id)
     .single();
 
-  if (profileError || profile?.role !== 'admin') {
+  if (profileError) {
+    console.error("Error fetching profile role after admin login:", profileError);
+    await supabase.auth.signOut();
+    throw new AuthError("Authentication failed: Could not verify user role.", 500);
+  }
+
+  if (profile?.role !== 'admin') {
+    console.warn(`User ${data.user?.id} attempted admin login but has role: ${profile?.role}`);
     await supabase.auth.signOut(); // Sign out if not an admin
     throw new AuthError("Access Denied: Only administrators can log in here.", 403);
   }
@@ -122,7 +133,10 @@ export const resetPasswordForEmail = async (identifier: string) => {
   // 1. Try to resolve as username
   if (identifier) {
     const { data: emailByUsername, error: usernameRpcError } = await supabase.rpc('get_email_by_username', { p_username: identifier });
-    if (!usernameRpcError && emailByUsername) {
+    if (usernameRpcError) {
+      console.error("RPC Error in resetPasswordForEmail (username lookup):", usernameRpcError);
+      // Don't throw here, try other methods or assume it's an email
+    } else if (emailByUsername) {
       emailToReset = emailByUsername as string;
     }
   }
@@ -130,18 +144,26 @@ export const resetPasswordForEmail = async (identifier: string) => {
   // 2. If not found by username, try to resolve as PIN
   if (!emailToReset && /^\d+$/.test(identifier)) {
     const { data: emailByPin, error: pinRpcError } = await supabase.rpc('get_email_by_pin', { p_pin: identifier });
-    if (!pinRpcError && emailByPin) {
+    if (pinRpcError) {
+      console.error("RPC Error in resetPasswordForEmail (PIN lookup):", pinRpcError);
+      // Don't throw here, try other methods or assume it's an email
+    } else if (emailByPin) {
       emailToReset = emailByPin as string;
     }
   }
 
   // 3. If not found by username or PIN, assume it's an email
   if (!emailToReset) {
-    emailToReset = identifier;
+    // Basic email format validation before assuming it's an email
+    if (identifier.includes('@') && identifier.includes('.')) { // Simple check
+      emailToReset = identifier;
+    } else {
+      throw new Error("Invalid identifier format. Please provide a valid email, username, or PIN.");
+    }
   }
 
   if (!emailToReset) {
-    throw new Error("Invalid identifier. Please provide a valid email, username, or PIN.");
+    throw new Error("Could not resolve identifier to an email address.");
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(emailToReset, {
@@ -149,6 +171,7 @@ export const resetPasswordForEmail = async (identifier: string) => {
   });
 
   if (error) {
+    console.error("Supabase Auth Reset Password Error:", error);
     throw error;
   }
 };
