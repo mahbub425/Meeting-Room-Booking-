@@ -38,7 +38,7 @@ const AnalyticsDashboardPage = () => {
     from: subMonths(new Date(), 5), // Default to last 6 months
     to: new Date(),
   });
-  const [monthlyBookingData, setMonthlyBookingData] = useState<any[]>([]);
+  const [dailyBookingData, setDailyBookingData] = useState<any[]>([]); // Changed from monthlyBookingData
   const [roomBookingData, setRoomBookingData] = useState<any[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalRooms, setTotalRooms] = useState(0); // Added totalRooms state
@@ -60,8 +60,8 @@ const AnalyticsDashboardPage = () => {
           return;
         }
         setIsAdmin(true);
-        fetchMeetingRooms();
-        fetchAnalyticsData();
+        await fetchMeetingRooms(); // Ensure rooms are fetched before analytics data
+        await fetchAnalyticsData(); // Call fetchAnalyticsData after rooms are set
       } else if (!loading && !user) {
         navigate("/login");
       }
@@ -109,6 +109,7 @@ const AnalyticsDashboardPage = () => {
         .select('*', { count: 'exact', head: true });
       if (usersError) throw usersError;
       setTotalUsers(usersCount || 0);
+      console.log("Total Users:", usersCount);
 
       // Fetch total rooms
       const { count: roomsCount, error: roomsError } = await supabase
@@ -116,6 +117,7 @@ const AnalyticsDashboardPage = () => {
         .select('*', { count: 'exact', head: true });
       if (roomsError) throw roomsError;
       setTotalRooms(roomsCount || 0);
+      console.log("Total Rooms:", roomsCount);
 
       // Fetch total bookings (filtered by date range and room)
       let totalBookingsQuery = supabase
@@ -129,6 +131,8 @@ const AnalyticsDashboardPage = () => {
       const { data: bookingsData, count: bookingsCount, error: bookingsError } = await totalBookingsQuery;
       if (bookingsError) throw bookingsError;
       setTotalBookings(bookingsCount || 0);
+      console.log("Total Bookings:", bookingsCount);
+      console.log("Bookings Data for charts:", bookingsData);
 
       // Fetch today's bookings
       let todaysBookingsQuery = supabase
@@ -141,25 +145,27 @@ const AnalyticsDashboardPage = () => {
       const { count: todaysBookingsCount, error: todaysBookingsError } = await todaysBookingsQuery;
       if (todaysBookingsError) throw todaysBookingsError;
       setTodaysBookings(todaysBookingsCount || 0);
+      console.log("Today's Bookings:", todaysBookingsCount);
 
-      // Prepare data for Monthly Booking Growth Rate (Line Chart)
-      const monthlyCounts: { [key: string]: number } = {};
+      // Prepare data for Daily Booking Growth Rate (Line Chart)
+      const dailyCounts: { [key: string]: number } = {};
       if (dateRange.from && dateRange.to) {
-        eachMonthOfInterval({ start: startOfMonth(dateRange.from), end: endOfMonth(dateRange.to) }).forEach(month => {
-          monthlyCounts[format(month, "yyyy-MM")] = 0;
+        eachDay({ start: startOfDay(dateRange.from), end: endOfDay(dateRange.to) }).forEach(day => {
+          dailyCounts[format(day, "yyyy-MM-dd")] = 0;
         });
       }
 
       bookingsData?.forEach((booking: Booking) => {
-        const monthKey = format(parseISO(booking.created_at), "yyyy-MM"); // Use created_at for growth rate
-        monthlyCounts[monthKey] = (monthlyCounts[monthKey] || 0) + 1;
+        const dayKey = format(parseISO(booking.created_at), "yyyy-MM-dd"); // Use created_at for growth rate
+        dailyCounts[dayKey] = (dailyCounts[dayKey] || 0) + 1;
       });
 
-      const formattedMonthlyData = Object.keys(monthlyCounts).sort().map(key => ({
-        month: format(parseISO(`${key}-01`), "MMM yy"),
-        bookings: monthlyCounts[key],
+      const formattedDailyData = Object.keys(dailyCounts).sort().map(key => ({
+        date: format(parseISO(key), "MMM dd"), // Format for display
+        bookings: dailyCounts[key],
       }));
-      setMonthlyBookingData(formattedMonthlyData);
+      setDailyBookingData(formattedDailyData); // Updated state setter
+      console.log("Formatted Daily Booking Data:", formattedDailyData);
 
       // Prepare data for Room-wise Booking (Bar Chart)
       const roomCounts: { [key: string]: number } = {};
@@ -176,11 +182,13 @@ const AnalyticsDashboardPage = () => {
         bookings: roomCounts[roomName],
       }));
       setRoomBookingData(formattedRoomData);
+      console.log("Formatted Room Booking Data:", formattedRoomData);
 
     } catch (error: any) {
+      console.error("Error fetching analytics data:", error);
       toast({
         title: "Error fetching analytics data",
-        description: error.message,
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -335,24 +343,28 @@ const AnalyticsDashboardPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Monthly Booking Growth Rate</CardTitle>
+                <CardTitle>Daily Booking Growth Rate</CardTitle>
                 <CardDescription>Bookings over time for the selected period.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={monthlyBookingData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="bookings" stroke="#8884d8" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {dailyBookingData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={dailyBookingData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="bookings" stroke="#8884d8" activeDot={{ r: 8 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-10">No daily booking data for the selected period.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -364,19 +376,23 @@ const AnalyticsDashboardPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={roomBookingData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="room" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="bookings" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {roomBookingData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={roomBookingData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="room" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="bookings" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-10">No room-wise booking data for the selected period.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
