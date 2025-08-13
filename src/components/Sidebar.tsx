@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, BarChart2, ListChecks } from "lucide-react"; // Added ListChecks icon
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, BarChart2, CalendarCheck } from "lucide-react"; // Added CalendarCheck
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -237,19 +237,19 @@ export const Sidebar = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/admin/analytics"
+                  to="/admin/analytics" // Changed to Analytics as default
                   className={cn(
                     "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
                     location.pathname.startsWith("/admin/analytics") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
                   )}
                 >
-                  <BarChart2 className="mr-3 h-5 w-5" />
+                  <BarChart2 className="mr-3 h-5 w-5" /> {/* Analytics Icon */}
                   Analytics
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/admin/overview"
+                  to="/admin/overview" // Changed to Admin Overview
                   className={cn(
                     "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
                     location.pathname.startsWith("/admin/overview") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
@@ -303,7 +303,7 @@ export const Sidebar = () => {
                     location.pathname.startsWith("/admin/bookings") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
                   )}
                 >
-                  <ListChecks className="mr-3 h-5 w-5" /> {/* Icon for Booking List */}
+                  <CalendarCheck className="mr-3 h-5 w-5" />
                   Booking List
                 </Link>
               </li>

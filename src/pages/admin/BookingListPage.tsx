@@ -8,17 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Booking, MeetingRoom, Profile } from "@/types";
 import { BookingTable } from "@/components/admin/BookingTable";
-import { Booking, Profile, MeetingRoom } from "@/types";
-import { Input } from "@/components/ui/input";
+import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
+import { BookingForm } from "@/components/BookingForm"; // Reusing existing BookingForm
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, subMonths, startOfDay, endOfDay, parseISO } from "date-fns"; // Added parseISO
-import { BookingForm } from "@/components/BookingForm"; // Reusing BookingForm for edit/view
-import { Label } from "@/components/ui/label"; // Added Label import
+import { format, subMonths, startOfDay, endOfDay, parseISO } from "date-fns";
 
 interface DateRange {
   from?: Date;
@@ -31,21 +30,27 @@ const BookingListPage = () => {
   const { toast } = useToast();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isFetching, setIsFetching] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-  const [viewingBooking, setViewingBooking] = useState<Booking | null>(null); // For view mode
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
   const [meetingRooms, setMeetingRooms] = useState<MeetingRoom[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  // Filter states
   const [filterRoomId, setFilterRoomId] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: subMonths(new Date(), 5), // Default to last 6 months
+    from: subMonths(new Date(), 6), // Default to last 6 months
     to: new Date(),
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const bookingsPerPage = 10;
+  const bookingsPerPage = 10; // Default to 10 bookings per page
+
+  // Maps for quick lookup in table
+  const meetingRoomsMap = new Map(meetingRooms.map(room => [room.id, room.name]));
+  const profilesMap = new Map(profiles.map(profile => [profile.id, profile]));
 
   useEffect(() => {
     const fetchAdminDataAndBookings = async () => {
@@ -60,141 +65,115 @@ const BookingListPage = () => {
           navigate("/dashboard");
           return;
         }
-        fetchMeetingRooms();
-        fetchBookings();
+        fetchData();
       } else if (!loading && !user) {
         navigate("/login");
       }
     };
 
     fetchAdminDataAndBookings();
-
-    // Set up real-time subscription for bookings
-    const bookingSubscription = supabase
-      .channel('public:bookings')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
-        console.log('Booking change received!', payload);
-        fetchBookings(); // Re-fetch data on any change
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(bookingSubscription);
-    };
   }, [user, loading, navigate, filterRoomId, dateRange, currentPage]);
 
-  const fetchMeetingRooms = async () => {
-    const { data, error } = await supabase
-      .from('meeting_rooms')
-      .select('*') // Changed to select all fields to match MeetingRoom type
-      .order('name', { ascending: true });
-
-    if (error) {
-      toast({
-        title: "Error fetching rooms",
-        description: error.message,
-        variant: "destructive",
-      });
-      setMeetingRooms([]);
-    } else {
-      const allRoomsOption: MeetingRoom = {
-        id: "all",
-        name: "All Rooms",
-        capacity: null, facilities: null, available_time_limit: null, image_url: null, is_enabled: true,
-        created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_id: null,
-      };
-      setMeetingRooms([allRoomsOption, ...(data || [])]);
-    }
-  };
-
-  const fetchBookings = async () => {
+  const fetchData = async () => {
     setIsFetching(true);
-    let query = supabase
-      .from('bookings')
-      .select(`
-        *,
-        profiles (name, pin, department, designation)
-      `, { count: 'exact' });
+    try {
+      // Fetch all meeting rooms
+      const { data: roomsData, error: roomsError } = await supabase
+        .from('meeting_rooms')
+        .select('*') // Changed to select all columns
+        .order('name', { ascending: true });
+      if (roomsError) throw roomsError;
+      setMeetingRooms(roomsData || []);
 
-    if (filterRoomId !== "all") {
-      query = query.eq('room_id', filterRoomId);
-    }
-    if (dateRange.from) {
-      query = query.gte('start_time', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"));
-    }
-    if (dateRange.to) {
-      query = query.lte('end_time', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"));
-    }
+      // Fetch all profiles (for user names, pins, departments)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*') // Changed to select all columns
+        .order('name', { ascending: true });
+      if (profilesError) throw profilesError;
+      setProfiles(profilesData || []);
 
-    const { data, error, count } = await query
-      .order('created_at', { ascending: false })
-      .range((currentPage - 1) * bookingsPerPage, currentPage * bookingsPerPage - 1);
+      // Fetch bookings with filters and pagination
+      let query = supabase
+        .from('bookings')
+        .select('*', { count: 'exact' });
 
-    if (error) {
+      if (filterRoomId !== "all") {
+        query = query.eq('room_id', filterRoomId);
+      }
+
+      const fromDateISO = dateRange.from ? format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx") : null;
+      const toDateISO = dateRange.to ? format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx") : null;
+
+      if (fromDateISO) query = query.gte('start_time', fromDateISO);
+      if (toDateISO) query = query.lte('end_time', toDateISO);
+
+      const { data, error, count } = await query
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * bookingsPerPage, currentPage * bookingsPerPage - 1);
+
+      if (error) throw error;
+
+      setBookings(data || []);
+      setTotalPages(Math.ceil((count || 0) / bookingsPerPage));
+
+    } catch (error: any) {
       toast({
-        title: "Error fetching bookings",
+        title: "Error fetching data",
         description: error.message,
         variant: "destructive",
       });
       setBookings([]);
+      setMeetingRooms([]);
+      setProfiles([]);
       setTotalPages(1);
-    } else {
-      // Map the data to include profile details directly in the booking object
-      const formattedBookings = data?.map(booking => ({
-        ...booking,
-        user_name: (booking.profiles as Profile)?.name || 'N/A',
-        user_pin: (booking.profiles as Profile)?.pin || 'N/A',
-        user_department: (booking.profiles as Profile)?.department || 'N/A',
-        user_designation: (booking.profiles as Profile)?.designation || 'N/A',
-      })) as Booking[] || [];
-      setBookings(formattedBookings);
-      setTotalPages(Math.ceil((count || 0) / bookingsPerPage));
+    } finally {
+      setIsFetching(false);
     }
-    setIsFetching(false);
-  };
-
-  const handleEditBooking = (booking: Booking) => {
-    setEditingBooking(booking);
-    setIsFormOpen(true);
   };
 
   const handleViewBooking = (booking: Booking) => {
-    setViewingBooking(booking);
-    setIsViewModalOpen(true);
+    setSelectedBooking(booking);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditBooking = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setIsEditFormOpen(true);
   };
 
   const handleDeleteBooking = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this booking?")) {
-      return;
-    }
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('id', id);
+    if (window.confirm("Are you sure you want to delete this booking?")) {
+      try {
+        const { error } = await supabase
+          .from('bookings')
+          .delete()
+          .eq('id', id);
 
-      if (error) throw error;
-      toast({
-        title: "Booking Deleted",
-        description: "The booking has been successfully deleted.",
-      });
-      fetchBookings();
-    } catch (error: any) {
-      toast({
-        title: "Deletion Failed",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
+        if (error) throw error;
+
+        toast({
+          title: "Booking Deleted",
+          description: "The booking has been successfully deleted.",
+        });
+        fetchData(); // Refresh the list
+      } catch (error: any) {
+        toast({
+          title: "Deletion Failed",
+          description: error.message || "An unexpected error occurred while deleting the booking.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleFormSuccess = () => {
-    setIsFormOpen(false);
-    setEditingBooking(null);
-    fetchBookings();
+    setIsEditFormOpen(false);
+    setSelectedBooking(null);
+    fetchData(); // Refresh the list
     toast({
-      title: "Success",
-      description: "Booking updated successfully.",
+      title: "Booking Updated",
+      description: "The booking has been successfully updated.",
     });
   };
 
@@ -212,7 +191,7 @@ const BookingListPage = () => {
   }
 
   if (!user || user.user_metadata?.role !== 'admin') {
-    return null;
+    return null; // Redirect handled by useEffect
   }
 
   return (
@@ -226,15 +205,15 @@ const BookingListPage = () => {
             View and manage all meeting room bookings.
           </p>
 
-          {/* Filters */}
+          {/* Filter Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="space-y-2">
-              <Label htmlFor="room-filter">Filter by Room</Label>
               <Select onValueChange={setFilterRoomId} value={filterRoomId}>
                 <SelectTrigger id="room-filter">
-                  <SelectValue placeholder="Select a room" />
+                  <SelectValue placeholder="Filter by Room" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Rooms</SelectItem>
                   {meetingRooms.map((room) => (
                     <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
                   ))}
@@ -242,7 +221,6 @@ const BookingListPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date-range-from">Date Range (From)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -253,7 +231,7 @@ const BookingListPage = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from ? format(dateRange.from, "PPP") : <span>Pick a date</span>}
+                    {dateRange.from ? format(dateRange.from, "PPP") : <span>From Date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -267,7 +245,6 @@ const BookingListPage = () => {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date-range-to">Date Range (To)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -278,7 +255,7 @@ const BookingListPage = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.to ? format(dateRange.to, "PPP") : <span>Pick a date</span>}
+                    {dateRange.to ? format(dateRange.to, "PPP") : <span>To Date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -295,9 +272,11 @@ const BookingListPage = () => {
 
           <BookingTable
             bookings={bookings}
+            meetingRooms={meetingRoomsMap}
+            users={profilesMap}
+            onView={handleViewBooking}
             onEdit={handleEditBooking}
             onDelete={handleDeleteBooking}
-            onView={handleViewBooking}
           />
 
           <div className="flex justify-between items-center mt-4">
@@ -323,97 +302,25 @@ const BookingListPage = () => {
       </div>
       <MadeWithDyad />
 
-      {/* Edit Booking Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <BookingDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        booking={selectedBooking}
+        meetingRooms={meetingRoomsMap}
+        users={profilesMap}
+      />
+
+      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Meeting Room Booking</DialogTitle>
-            <DialogDescription>Modify the details of the meeting room booking.</DialogDescription>
+            <DialogDescription>Modify the details of this meeting room booking.</DialogDescription>
           </DialogHeader>
           <BookingForm
-            initialData={editingBooking}
+            initialData={selectedBooking}
             onSuccess={handleFormSuccess}
-            onCancel={() => setIsFormOpen(false)}
+            onCancel={() => setIsEditFormOpen(false)}
           />
-        </DialogContent>
-      </Dialog>
-
-      {/* View Booking Dialog */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>Details of the selected meeting room booking.</DialogDescription>
-          </DialogHeader>
-          {viewingBooking && (
-            <div className="space-y-4 p-4">
-              <div>
-                <Label className="font-semibold">Meeting Title:</Label>
-                <p>{viewingBooking.meeting_title}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Booked By:</Label>
-                <p>{viewingBooking.user_name} (PIN: {viewingBooking.user_pin})</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Department:</Label>
-                <p>{viewingBooking.user_department}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Designation:</Label>
-                <p>{viewingBooking.user_designation}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Room ID:</Label>
-                <p>{viewingBooking.room_id}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Meeting Time:</Label>
-                <p>{format(parseISO(viewingBooking.start_time), "PPP p")} - {format(parseISO(viewingBooking.end_time), "p")}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Status:</Label>
-                <p className="capitalize">{viewingBooking.status}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Repeat Type:</Label>
-                <p className="capitalize">{viewingBooking.repeat_type.replace('_', ' ')}</p>
-              </div>
-              {viewingBooking.recurrence_rule && (
-                <div>
-                  <Label className="font-semibold">Recurrence Rule:</Label>
-                  <p>{viewingBooking.recurrence_rule}</p>
-                </div>
-              )}
-              {viewingBooking.recurrence_end_date && (
-                <div>
-                  <Label className="font-semibold">Recurrence End Date:</Label>
-                  <p>{format(parseISO(viewingBooking.recurrence_end_date), "PPP")}</p>
-                </div>
-              )}
-              <div>
-                <Label className="font-semibold">Remarks:</Label>
-                <p>{viewingBooking.remarks || "N/A"}</p>
-              </div>
-              <div>
-                <Label className="font-semibold">Guests Allowed:</Label>
-                <p>{viewingBooking.is_guest_allowed ? "Yes" : "No"}</p>
-              </div>
-              {viewingBooking.is_guest_allowed && viewingBooking.guest_emails && viewingBooking.guest_emails.length > 0 && (
-                <div>
-                  <Label className="font-semibold">Guest Emails:</Label>
-                  <p>{viewingBooking.guest_emails.join(", ")}</p>
-                </div>
-              )}
-              <div>
-                <Label className="font-semibold">Created At:</Label>
-                <p>{format(parseISO(viewingBooking.created_at), "PPP p")}</p>
-              </div>
-            </div>
-          )}
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button onClick={() => setIsViewModalOpen(false)}>Close</Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -135,13 +135,13 @@ const AdminOverviewPage = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Booking Approvals</CardTitle>
-                <CardDescription>Review and approve/reject pending bookings.</CardDescription>
+                <CardTitle className="text-xl">Booking List</CardTitle>
+                <CardDescription>Review and manage all bookings.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild className="w-full" variant="outline" disabled>
-                  <Link to="#">
-                    <CalendarCheck className="mr-2 h-4 w-4" /> Review Bookings (Coming Soon)
+                <Button asChild className="w-full">
+                  <Link to="/admin/bookings">
+                    <CalendarCheck className="mr-2 h-4 w-4" /> View All Bookings
                   </Link>
                 </Button>
               </CardContent>

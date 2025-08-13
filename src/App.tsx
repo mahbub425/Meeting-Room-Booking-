@@ -19,8 +19,9 @@ import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import { SessionContextProvider } from "./components/SessionContextProvider";
 import BookingListPage from "./pages/admin/BookingListPage"; // New import for BookingListPage
+import { SessionContextProvider } from "./components/SessionContextProvider";
+// import { DashboardLayoutProvider } from "./components/DashboardLayoutContext"; // Removed as it's now used within DashboardPage
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <SessionContextProvider>
+          {/* DashboardLayoutProvider is now used within DashboardPage */}
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
@@ -36,8 +38,8 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/admin/overview" element={<AdminOverviewPage />} />
-            <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} />
+            <Route path="/admin/overview" element={<AdminOverviewPage />} /> {/* Updated route */}
+            <Route path="/admin/analytics" element={<AnalyticsDashboardPage />} /> {/* New route for Analytics */}
             <Route path="/admin/rooms" element={<MeetingRoomManagementPage />} />
             <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
             <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
