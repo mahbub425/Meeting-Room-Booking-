@@ -18,6 +18,7 @@ import OrganizationProfilePage from "./pages/admin/OrganizationProfilePage";
 import AnalyticsDashboardPage from "./pages/admin/AnalyticsDashboardPage";
 import UserManagementPage from "./pages/admin/UserManagementPage";
 import MeetingRoomCategoryManagementPage from "./pages/admin/MeetingRoomCategoryManagementPage";
+import BookingListPage from "./pages/admin/BookingListPage"; // New import
 import AdminLoginPage from "./pages/AdminLoginPage";
 import { SessionContextProvider } from "./components/SessionContextProvider";
 // import { DashboardLayoutProvider } from "./components/DashboardLayoutContext"; // Removed as it's now used within DashboardPage
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/admin/categories" element={<MeetingRoomCategoryManagementPage />} />
             <Route path="/admin/organization-profile" element={<OrganizationProfilePage />} />
             <Route path="/admin/users" element={<UserManagementPage />} />
+            <Route path="/admin/bookings" element={<BookingListPage />} /> {/* New route */}
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/room/:id" element={<RoomDetailsPage />} />
             <Route path="/force-password-reset" element={<ForcePasswordResetPage />} />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, BarChart2 } from "lucide-react"; // Added BarChart2
+import { Calendar as CalendarIcon, Building, LogOut, User, ChevronLeft, ChevronRight, Users, LayoutList, BarChart2, CalendarCheck } from "lucide-react"; // Added BarChart2, CalendarCheck
 import { cn } from "@/lib/utils";
 import { useSession } from "@/components/SessionContextProvider";
 import { signOut } from "@/integrations/supabase/auth";
@@ -293,6 +293,18 @@ export const Sidebar = () => {
                 >
                   <Users className="mr-3 h-5 w-5" />
                   User Management
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/bookings"
+                  className={cn(
+                    "flex items-center p-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent dark:hover:text-sidebar-accent-foreground",
+                    location.pathname.startsWith("/admin/bookings") && "bg-sidebar-accent text-sidebar-accent-foreground dark:bg-sidebar-accent dark:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <CalendarCheck className="mr-3 h-5 w-5" />
+                  Booking List
                 </Link>
               </li>
             </ul>
