@@ -20,6 +20,11 @@ export interface Booking {
   parent_booking_id: string | null;
   recurrence_rule: string | null;
   recurrence_end_date: string | null; // ISO date string
+  // Added for easier display in admin tables (fetched via join)
+  user_name?: string;
+  user_pin?: string;
+  user_department?: string;
+  user_designation?: string;
 }
 
 export interface MeetingRoom {
